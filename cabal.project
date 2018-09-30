@@ -1,0 +1,6 @@
+-- cabal.project
+packages:
+  common/
+  backend/
+  frontend/
+  diagrams-reflex/
