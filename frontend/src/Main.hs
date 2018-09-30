@@ -16,6 +16,7 @@ import JSDOM.Generated.FileReader
 import JSDOM.Types (File, UIEvent)
 import JSDOM.EventM
 import Control.Monad(mapM)
+import Data.Aeson
 
 import Datatype
 
@@ -24,16 +25,18 @@ main = mainWidget $ do
   header
   filesDyn <- value <$> fileInput def
   urlE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
-  cotent <- holdDyn "" urlE
-  el "div" (dynText cotent)
-  displayQuestion testQuestion
+  -- cotent <- holdDyn "" urlE
+  -- el "div" (dynText cotent)
+  el "div" . widgetHold blank . ffor urlE $ \url ->
+    displayQuestion url
+  -- displayQuestion urlE
   footer
 
-linkNewTab :: MonadWidget t m => Text -> Text -> m ()
+linkNewTab ::DomBuilder t m => Text -> Text -> m ()
 linkNewTab href s =
   elAttr "a" ("href" =: href <> "target" =: "_blank") $ text s
 
-header :: MonadWidget t m => m ()
+header :: DomBuilder t m => m ()
 header = do
   el "strong" $ do
     linkNewTab "https://github.com/reflex-frp/reflex-dom" "Reflex.Dom"
@@ -41,7 +44,7 @@ header = do
   el "p" $ do
     text "Select an image file."
 
-footer :: MonadWidget t m => m ()
+footer :: DomBuilder t m => m ()
 footer = do
   el "hr" $ return ()
   el "p" $ do
@@ -49,26 +52,29 @@ footer = do
     linkNewTab "https://github.com/reflex-frp/reflex-examples" "Reflex Examples"
     text " repo."
 
-displayOption :: MonadWidget t m => T.Text -> m ()
+displayOption ::(PostBuild t m, DomBuilder t m) => T.Text -> m ()
 displayOption opt = el "label" $ do
   checkbox False def
   text opt
   return ()
 
-displayQuestion :: MonadWidget t m => Question -> m ()
+displayQuestion :: (PostBuild t m, DomBuilder t m) => Question -> m ()
 displayQuestion que = do
   text (content que)
   el "br" blank
   mapM displayOption (options que)
   return ()
 
+-- displayRes :: (PostBuild t m, DomBuilder t m) => Result Question -> m ()
+-- displayRes (Data.Aeson.Error e) = text (T.pack e)
+-- displayRes (Success a) = displayQuestion a
 
 
-
-dataURLFileReader :: (MonadWidget t m) => Event t File -> m (Event t Text)
+dataURLFileReader :: MonadWidget t m => Event t File -> m (Event t Question)
 dataURLFileReader request =
   do fileReader <- liftJSM newFileReader
      performEvent_ (fmap (\f -> readAsText fileReader (Just f) (Just "UTF8"::Maybe Text)) request)
      e <- wrapDomEvent fileReader (`on` load) $
        liftJSM (getResult fileReader >>= toJSVal >>= fromJSVal)
-     return (fmapMaybe id e)
+     
+     return (fmapMaybe parseQuestion (fmapMaybe id e))
