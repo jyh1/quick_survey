@@ -22,5 +22,5 @@ instance FromJSON Question
 testQuestion :: Question
 testQuestion = Question {content = "What is your favorite color?", options = ["Blue","Red","Black"]}
 
-parseQuestion :: T.Text -> Maybe Question
+parseQuestion :: T.Text -> Maybe [Question]
 parseQuestion = decode' . encodeUtf8 . fromStrict

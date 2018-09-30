@@ -24,12 +24,11 @@ main :: IO ()
 main = mainWidget $ do
   header
   filesDyn <- value <$> fileInput def
-  urlE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
-  -- cotent <- holdDyn "" urlE
-  -- el "div" (dynText cotent)
-  el "div" . widgetHold blank . ffor urlE $ \url ->
-    displayQuestion url
-  -- displayQuestion urlE
+  qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
+  qLis <- holdDyn [] qLisE
+  -- el "div" . widgetHold blank . ffor urlE $ \url ->
+  --   displayQuestion url
+  simpleList qLis displayQuestion
   footer
 
 linkNewTab ::DomBuilder t m => Text -> Text -> m ()
@@ -52,17 +51,18 @@ footer = do
     linkNewTab "https://github.com/reflex-frp/reflex-examples" "Reflex Examples"
     text " repo."
 
-displayOption ::(PostBuild t m, DomBuilder t m) => T.Text -> m ()
+displayOption ::(PostBuild t m, DomBuilder t m) => Dynamic t T.Text -> m ()
 displayOption opt = el "label" $ do
   checkbox False def
-  text opt
+  dynText opt
   return ()
 
-displayQuestion :: (PostBuild t m, DomBuilder t m) => Question -> m ()
+-- displayQuestion :: (PostBuild t m, DomBuilder t m) => Dynamic t Question -> m ()
 displayQuestion que = do
-  text (content que)
   el "br" blank
-  mapM displayOption (options que)
+  dynText (content <$> que)
+  el "br" blank
+  simpleList (options <$> que) displayOption
   return ()
 
 -- displayRes :: (PostBuild t m, DomBuilder t m) => Result Question -> m ()
@@ -70,7 +70,7 @@ displayQuestion que = do
 -- displayRes (Success a) = displayQuestion a
 
 
-dataURLFileReader :: MonadWidget t m => Event t File -> m (Event t Question)
+dataURLFileReader :: MonadWidget t m => Event t File -> m (Event t [Question])
 dataURLFileReader request =
   do fileReader <- liftJSM newFileReader
      performEvent_ (fmap (\f -> readAsText fileReader (Just f) (Just "UTF8"::Maybe Text)) request)
