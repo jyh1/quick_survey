@@ -6,6 +6,7 @@
     backend = ./backend;
     frontend = ./frontend;
     diagrams-reflex = ./diagrams-reflex;
+    reflex-dom-semui = ./reflex-dom-semui;
   };
 
   shells = {

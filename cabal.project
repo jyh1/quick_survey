@@ -4,3 +4,4 @@ packages:
   backend/
   frontend/
   diagrams-reflex/
+  reflex-dom-semui/

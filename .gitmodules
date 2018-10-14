@@ -4,3 +4,6 @@
 [submodule "diagrams-reflex"]
 	path = diagrams-reflex
 	url = https://github.com/diagrams/diagrams-reflex.git
+[submodule "reflex-dom-semui"]
+	path = reflex-dom-semui
+	url = https://github.com/reflex-frp/reflex-dom-semui.git
