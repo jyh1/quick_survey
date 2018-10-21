@@ -16,4 +16,16 @@ instance ToJSON Question where
 
 instance FromJSON Question
 
+data QuestionElement = 
+      RadioGroup {title :: Maybe T.Text, radioOpts :: [T.Text]}
+    | Title T.Text
+    deriving (Show, Eq)
 
+type ParsedQuestion = [(ElementID, QuestionElement)]
+
+data Response = Clicked Int
+    deriving (Show, Eq)
+
+type ElementID = Int
+
+data SurveyUpdate = SurveyUpdate {field :: ElementID, response :: Response}
