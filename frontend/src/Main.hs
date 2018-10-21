@@ -1,4 +1,4 @@
-{-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings, ScopedTypeVariables #-}
 
 import Reflex.Dom
 import Data.Monoid
@@ -11,25 +11,27 @@ import JSDOM.Generated.FileReader
 import JSDOM.Types (File)
 import JSDOM.EventM
 import Reflex.Dom.SemanticUI
-import Data.Map as Map
+import qualified Data.Map as Map
 import Language.Javascript.JSaddle.Evaluate
 import Data.Text.Encoding (encodeUtf8)
 
 import Datatype
+import Question
 
 main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
-  liftJSM (eval jqueryJS)
-  liftJSM (eval semanticJS)
+  importExternalJS
   header
   filesDyn <- value <$> fileInput def
   qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
   qLis <- holdDyn [] qLisE
-  simpleList qLis displayQuestion
+  let 
+    qIDs = map (T.pack . show) [1..]
+    qMap = Map.fromList . zip qIDs <$> qLis
+  listWithKey qMap renderQuestion
 
   el "p" $ text "These are examples of semantic-ui widgets."
   el "p" $ uiButton (huge $ inverted $ blue def) (text "I'm a huge, inverted, blue button!")
-
   divClass "example" $ do
     text "Fluid selection dropdown"
     v <- semUiDropdownWithItems "test-dropdown-1"
@@ -45,8 +47,14 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
     display w
 
 
-entries :: MonadWidget t m => Dynamic t (Map (Maybe Int) (DropdownItemConfig m))
-entries = constDyn . fromList $ entry <$> (Nothing : (Just <$> [0..4]))
+importExternalJS :: MonadWidget t m => m ()
+importExternalJS = liftJSM $ do
+  eval jqueryJS
+  eval semanticJS
+  return ()
+
+entries :: MonadWidget t m => Dynamic t (Map.Map (Maybe Int) (DropdownItemConfig m))
+entries = constDyn . Map.fromList $ entry <$> (Nothing : (Just <$> [0..4]))
   where -- entry :: Maybe Int -> (Maybe Int,DropdownItemConfig m)
         entry n =
           (n, DropdownItemConfig (spell n) $
@@ -76,19 +84,6 @@ header = do
     text "Select an image file."
 
 
-displayOption ::(PostBuild t m, DomBuilder t m) => Dynamic t T.Text -> m ()
-displayOption opt = el "label" $ do
-  checkbox False def
-  dynText opt
-  return ()
-
-displayQuestion :: (MonadWidget t m) => Dynamic t Question -> m ()
-displayQuestion que = do
-  el "br" blank
-  dynText (content <$> que)
-  el "br" blank
-  simpleList (options <$> que) displayOption
-  return ()
 
 
 

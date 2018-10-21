@@ -7,6 +7,7 @@
     frontend = ./frontend;
     diagrams-reflex = ./diagrams-reflex;
     reflex-dom-semui = ./reflex-dom-semui;
+    reflex-dom-contrib = ./reflex-dom-contrib;
   };
 
   shells = {
