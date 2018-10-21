@@ -22,13 +22,14 @@ main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   importExternalJS
   header
-  filesDyn <- value <$> fileInput def
-  qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
-  qLis <- holdDyn [] qLisE
+  -- filesDyn <- value <$> fileInput def
+  -- qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
+  -- qLis <- holdDyn [] qLisE
+  let qLis = constDyn testQuestion
   let 
     qIDs = map (T.pack . show) [1..]
     qMap = Map.fromList . zip qIDs <$> qLis
-  listWithKey qMap renderQuestion
+  divClass "ui bottom attached segment form" $ listWithKey qMap renderQuestion
 
   el "p" $ text "These are examples of semantic-ui widgets."
   el "p" $ uiButton (huge $ inverted $ blue def) (text "I'm a huge, inverted, blue button!")
