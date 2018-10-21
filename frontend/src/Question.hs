@@ -24,13 +24,28 @@ import Datatype
 parseQuestion :: T.Text -> Maybe [Question]
 parseQuestion = decode' . encodeUtf8 . fromStrict
 
-renderQuestion :: (MonadWidget t m) => T.Text -> Dynamic t Question -> m (Dynamic t (Maybe Int))
-renderQuestion groupK que = divClass "field" $ do
+renderQuestionLis :: (MonadWidget t m) => Dynamic t [Question] -> m (Event t (Maybe Int))
+renderQuestionLis qLis =
+  let qIDs = map (T.pack . show) [1..]
+      qMap = Map.fromList . zip qIDs <$> qLis 
+  in
+    do
+      -- surveyMap :: Dynamic t (Map k (Event t (Maybe Int)))
+      surveyMap <- divClass "ui bottom attached segment form" $ listWithKey qMap renderQuestion
+      let 
+        -- surveyEvent :: Dynamic t (Event t (Maybe Int))
+        surveyEvent = (leftmost . Map.elems) <$> surveyMap
+      return (switchDyn surveyEvent)
+
+
+
+renderQuestion :: (MonadWidget t m) => T.Text -> Dynamic t Question -> m (Event t (Maybe Int))
+renderQuestion groupK que = divClass "ui segment" $ do
   rec el "label" $ do
         dynText (content <$> que)
-        displayAnswer (options <$> que) answer
+        displayAnswer (options <$> que) (_hwidget_value answer)
       answer <- optionRadioGroup groupK (options <$> que)
-  return answer
+  return (_hwidget_change answer)
 
 displayAnswer :: (MonadWidget t m) => Dynamic t [T.Text] -> Dynamic t (Maybe Int) -> m ()
 displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
@@ -41,16 +56,16 @@ displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
       visible p = "style" =: ("display: " <> if (p == Nothing) then "none" else "inline")
       selAttr p = ("class" =: "ui left pointing label") <> visible p
 
-optionRadioGroup :: MonadWidget t m => T.Text -> Dynamic t [T.Text] -> m (Dynamic t (Maybe Int))
-optionRadioGroup groupK opts = do
-  rbs :: HtmlWidget t (Maybe Int) <- 
+optionRadioGroup :: MonadWidget t m => T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
+optionRadioGroup groupK opts =
+  -- rbs :: HtmlWidget t (Maybe Int) <- 
     semRadioGroup 
           (constDyn groupK)
           (fmap (zip [1..]) opts)
           WidgetConfig { _widgetConfig_initialValue = Nothing
                       , _widgetConfig_setValue     = never
                       , _widgetConfig_attributes   = constDyn ("class" =: "inline fields")}
-  return (_hwidget_value rbs)
+  -- return rbs
 
 
 semRadioGroup :: (MonadWidget t m, Eq a)
