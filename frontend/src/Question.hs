@@ -35,40 +35,48 @@ parseQuestion eid que =
 parseSurvey :: [Question] -> Survey
 parseSurvey qlis =  snd (mapAccumR parseQuestion 0 qlis)
 
-renderQuestionLis :: (MonadWidget t m) => Dynamic t Survey -> m (Event t (Maybe Int))
+renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t (Maybe Int))
 renderQuestionLis qLis =
   let qIDs = map tshow [1..]
       qMap = Map.fromList . zip qIDs <$> qLis 
   in
     do
       -- surveyMap :: Dynamic t (Map k (Event t (Maybe Int)))
-      surveyMap <- divClass "ui bottom attached segment form" $ listWithKey qMap renderQuestion
-      let 
+      -- surveyMap <- divClass "ui bottom attached segment form" $ listWithKey qMap renderQuestion
+      widgetHold (return [never]) (mapM renderQuestion <$> qLis)
+      -- let 
         -- surveyEvent :: Dynamic t (Event t (Maybe Int))
-        surveyEvent = (leftmost . Map.elems) <$> surveyMap
-      return (switchDyn surveyEvent)
+        -- surveyEvent = (leftmost . Map.elems) <$> surveyMap
+      -- return (switchDyn surveyEvent)
+      return never
 
 
 
-renderQuestion :: (MonadWidget t m) => T.Text -> Dynamic t ParsedQuestion -> m (Event t (Maybe Int))
-renderQuestion = undefined
-
-renderElement, renderTitle, renderRadioGroup :: (MonadWidget t m) => Dynamic t ElementWithID -> m (Event t ElementResponse)
-renderElement = undefined
-
-renderTitle titleWithID = divClass "ui top attached segment" $ do
-  dynText ((titleTitle . getEle) <$> titleWithID)
+renderQuestion :: (MonadWidget t m) => ParsedQuestion -> m (Event t ())
+renderQuestion elis = do
+  -- simpleList elis renderDynEle
+  mapM renderElement elis
   return never
 
-renderRadioGroup radioWithID = divClass "ui bottom attached segment field" $ do
+-- renderDynEle :: (MonadWidget t m) => Dynamic t ElementWithID -> m (Event t ElementResponse)
+-- renderDynEle dynEle = do
+--   display dynEle
+--   switchDyn <$> widgetHold (return never) (renderElement <$> (traceEvent "dynele" (updated dynEle)))
+
+renderElement :: (MonadWidget t m) => ElementWithID -> m (Event t ElementResponse)
+renderElement (_, Title title) = divClass "ui top attached segment" $ do
+  text title
+  return never
+
+renderElement (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field" $ do
   rec el "label" $ do
-        dynText (maybe "" id . radioTitle <$> radio)
-        displayAnswer (radioOpts <$> radio) (_hwidget_value answer)
-      answer <- optionRadioGroup radioID (radioOpts <$> radio)
+        text (maybe "" id radioT)
+        displayAnswer (constDyn radioO) (_hwidget_value answer)
+      answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
   return (getResponse <$> _hwidget_change answer)
   where
-    radio = getEle <$> radioWithID
-    radioID = ("radio_" <> ) . tshow . getId <$> radioWithID
+    -- radio = getEle radioWithID
+    radioID = ("radio_" <> ) . tshow $ rId
     getResponse Nothing = Clear
     getResponse (Just k) = Clicked k
 

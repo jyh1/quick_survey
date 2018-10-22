@@ -22,10 +22,11 @@ main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   importExternalJS
   header
-  -- filesDyn <- value <$> fileInput def
-  -- qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
-  -- qLis <- holdDyn [] qLisE
-  let qLis = constDyn (parseSurvey testQuestion)
+  filesDyn <- value <$> fileInput def
+  qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
+  -- qLis <- holdDyn [] (parseSurvey <$> qLisE)
+  let qLis = parseSurvey <$> qLisE
+  -- let qLis = constDyn (parseSurvey testQuestion)
   response <- renderQuestionLis qLis
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
