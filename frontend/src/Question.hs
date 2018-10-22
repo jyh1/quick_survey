@@ -18,15 +18,26 @@ import           Data.Maybe                 (fromMaybe, listToMaybe)
 import JSDOM.Types (castTo, Element)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
+import Data.Traversable (mapAccumR)
 
 import Datatype
 
-parseQuestion :: T.Text -> Maybe [Question]
-parseQuestion = decode' . encodeUtf8 . fromStrict
+jsonToQuestion :: T.Text -> Maybe [Question]
+jsonToQuestion = decode' . encodeUtf8 . fromStrict
 
-renderQuestionLis :: (MonadWidget t m) => Dynamic t [Question] -> m (Event t (Maybe Int))
+-- return next available id and parsed question
+parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
+parseQuestion eid que = 
+  (succ $ succ eid,
+    [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
+  )
+
+parseSurvey :: [Question] -> Survey
+parseSurvey qlis =  snd (mapAccumR parseQuestion 0 qlis)
+
+renderQuestionLis :: (MonadWidget t m) => Dynamic t Survey -> m (Event t (Maybe Int))
 renderQuestionLis qLis =
-  let qIDs = map (T.pack . show) [1..]
+  let qIDs = map tshow [1..]
       qMap = Map.fromList . zip qIDs <$> qLis 
   in
     do
@@ -39,29 +50,43 @@ renderQuestionLis qLis =
 
 
 
-renderQuestion :: (MonadWidget t m) => T.Text -> Dynamic t Question -> m (Event t (Maybe Int))
-renderQuestion groupK que = divClass "ui segment" $ do
+renderQuestion :: (MonadWidget t m) => T.Text -> Dynamic t ParsedQuestion -> m (Event t (Maybe Int))
+renderQuestion = undefined
+
+renderElement, renderTitle, renderRadioGroup :: (MonadWidget t m) => Dynamic t ElementWithID -> m (Event t ElementResponse)
+renderElement = undefined
+
+renderTitle titleWithID = divClass "ui top attached segment" $ do
+  dynText ((titleTitle . getEle) <$> titleWithID)
+  return never
+
+renderRadioGroup radioWithID = divClass "ui bottom attached segment field" $ do
   rec el "label" $ do
-        dynText (content <$> que)
-        displayAnswer (options <$> que) (_hwidget_value answer)
-      answer <- optionRadioGroup groupK (options <$> que)
-  return (_hwidget_change answer)
+        dynText (maybe "" id . radioTitle <$> radio)
+        displayAnswer (radioOpts <$> radio) (_hwidget_value answer)
+      answer <- optionRadioGroup radioID (radioOpts <$> radio)
+  return (getResponse <$> _hwidget_change answer)
+  where
+    radio = getEle <$> radioWithID
+    radioID = ("radio_" <> ) . tshow . getId <$> radioWithID
+    getResponse Nothing = Clear
+    getResponse (Just k) = Clicked k
 
 displayAnswer :: (MonadWidget t m) => Dynamic t [T.Text] -> Dynamic t (Maybe Int) -> m ()
 displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
   dynText (zipDynWith showOpt opts sel)
     where 
       showOpt opts Nothing = "None"
-      showOpt opts (Just k) = opts !! (k - 1)
+      showOpt opts (Just k) = opts !! k
       visible p = "style" =: ("display: " <> if (p == Nothing) then "none" else "inline")
       selAttr p = ("class" =: "ui left pointing label") <> visible p
 
-optionRadioGroup :: MonadWidget t m => T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
+optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
 optionRadioGroup groupK opts =
   -- rbs :: HtmlWidget t (Maybe Int) <- 
     semRadioGroup 
-          (constDyn groupK)
-          (fmap (zip [1..]) opts)
+          groupK
+          (fmap (zip [0..]) opts)
           WidgetConfig { _widgetConfig_initialValue = Nothing
                       , _widgetConfig_setValue     = never
                       , _widgetConfig_attributes   = constDyn ("class" =: "inline fields")}

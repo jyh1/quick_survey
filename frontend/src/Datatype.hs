@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
+
 module Datatype where
 
 import Data.Aeson
@@ -17,15 +18,31 @@ instance ToJSON Question where
 instance FromJSON Question
 
 data QuestionElement = 
-      RadioGroup {title :: Maybe T.Text, radioOpts :: [T.Text]}
-    | Title T.Text
+      RadioGroup {radioTitle :: Maybe T.Text, radioOpts :: [T.Text]}
+    | Title {titleTitle :: T.Text}
     deriving (Show, Eq)
 
-type ParsedQuestion = [(ElementID, QuestionElement)]
+type WithID key ele = (key, ele)
 
-data Response = Clicked Int
+getId = fst
+getEle = snd
+
+
+type ElementWithID = WithID ElementID QuestionElement
+type ParsedQuestion = [ElementWithID]
+
+type Survey = [ParsedQuestion]
+
+data ElementResponse = 
+      Clicked ElementID
+    | Clear
     deriving (Show, Eq)
 
 type ElementID = Int
 
-data SurveyUpdate = SurveyUpdate {field :: ElementID, response :: Response}
+type FieldID = Int
+
+type SurveyUpdate = WithID FieldID ElementResponse
+
+tshow :: (Show a) => a -> T.Text
+tshow = T.pack . show

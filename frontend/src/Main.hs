@@ -25,7 +25,7 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   -- filesDyn <- value <$> fileInput def
   -- qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
   -- qLis <- holdDyn [] qLisE
-  let qLis = constDyn testQuestion
+  let qLis = constDyn (parseSurvey testQuestion)
   response <- renderQuestionLis qLis
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
@@ -58,9 +58,9 @@ entries = constDyn . Map.fromList $ entry <$> (Nothing : (Just <$> [0..4]))
   where -- entry :: Maybe Int -> (Maybe Int,DropdownItemConfig m)
         entry n =
           (n, DropdownItemConfig (spell n) $
-              elAttr "div" ("style" =: style) $ do
-                elAttr "span" ("style" =: "font-weight: bold;") $ text $ tshow n
-                elAttr "span" ("style" =: "font-style: italic;")   $ text $ spell n
+              elAttr "div" ("style" =: style) $ blank
+                -- elAttr "span" ("style" =: "font-weight: bold;") $ text $ tshow n
+                -- elAttr "span" ("style" =: "font-style: italic;")   $ text $ spell n
           )
         style = "display: flex; justify-content: space-between; "
 
@@ -94,4 +94,4 @@ dataURLFileReader request =
      e <- wrapDomEvent fileReader (`on` load) $
        liftJSM (getResult fileReader >>= toJSVal >>= fromJSVal)
      
-     return (fmapMaybe parseQuestion (fmapMaybe id e))
+     return (fmapMaybe jsonToQuestion (fmapMaybe id e))
