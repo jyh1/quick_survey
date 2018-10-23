@@ -4,7 +4,6 @@ import Reflex.Dom
 import Data.Monoid
 import Data.Maybe
 import Data.Text (Text)
-import qualified Data.Text as T
 import GHCJS.Marshal
 import JSDOM.Types hiding (Text, Event)
 import JSDOM.Generated.FileReader
@@ -50,8 +49,8 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
 
 importExternalJS :: MonadWidget t m => m ()
 importExternalJS = liftJSM $ do
-  eval jqueryJS
-  eval semanticJS
+  _ <- eval jqueryJS
+  _ <- eval semanticJS
   return ()
 
 entries :: MonadWidget t m => Dynamic t (Map.Map (Maybe Int) (DropdownItemConfig m))
