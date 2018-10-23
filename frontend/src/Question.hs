@@ -12,9 +12,7 @@ import Data.Text.Lazy(fromStrict)
 import Data.Aeson (decode')
 import           Reflex.Dom.Contrib.Widgets.ButtonGroup
 import           Reflex.Dom.Contrib.Widgets.Common
-import           Data.Bool                  (bool)
-import           Data.Maybe                 (fromMaybe, listToMaybe)
-import JSDOM.Types (castTo, Element)
+import           Data.Maybe                 (fromMaybe)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
 import Data.Traversable (mapAccumL)
@@ -35,13 +33,9 @@ parseSurvey :: [Question] -> Survey
 parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
 renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t SurveyUpdate)
-renderQuestionLis qLis =
-  let qIDs = map tshow [1..]
-      qMap = Map.fromList . zip qIDs <$> qLis 
-  in
-    do
-      allUpdates <- widgetHold (return [never]) (mapM renderQuestion <$> qLis)
-      return (switchDyn (leftmost <$> allUpdates))
+renderQuestionLis qLis = do
+  allUpdates <- widgetHold (return [never]) (mapM renderQuestion <$> qLis)
+  return (switchDyn (leftmost <$> allUpdates))
 
 
 renderQuestion :: (MonadWidget t m) => ParsedQuestion -> m (Event t SurveyUpdate)
