@@ -2,27 +2,22 @@
 
 import Reflex.Dom
 import Data.Monoid
-import Data.Maybe
 import Data.Text (Text)
-import GHCJS.Marshal
-import JSDOM.Types hiding (Text, Event)
-import JSDOM.Generated.FileReader
-import JSDOM.Types (File)
-import JSDOM.EventM
+import JSDOM.Types (liftJSM)
 import Reflex.Dom.SemanticUI
 import qualified Data.Map as Map
 import Language.Javascript.JSaddle.Evaluate
 import Data.Text.Encoding (encodeUtf8)
 
-import Datatype
 import Question
+import Fileinput
 
 main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   importExternalJS
   header
-  filesDyn <- value <$> fileInput def
-  qLisE <- dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
+  inputConfig <- loadingFile
+  let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
   buildE <- getPostBuild
   let qLis =  leftmost [(parseSurvey testQuestion) <$ buildE, parsedQs]
@@ -83,15 +78,3 @@ header = do
   el "p" $ do
     text "Select an image file."
 
-
-
-
-
-dataURLFileReader :: MonadWidget t m => Event t File -> m (Event t [Question])
-dataURLFileReader request =
-  do fileReader <- liftJSM newFileReader
-     performEvent_ (fmap (\f -> readAsText fileReader (Just f) (Just "UTF8"::Maybe Text)) request)
-     e <- wrapDomEvent fileReader (`on` load) $
-       liftJSM (getResult fileReader >>= toJSVal >>= fromJSVal)
-     
-     return (fmapMaybe jsonToQuestion (fmapMaybe id e))
