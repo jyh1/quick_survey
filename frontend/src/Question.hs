@@ -55,12 +55,13 @@ renderElement (_, Title title) = divClass "ui top attached segment" $ do
   text title
   return never
 
-renderElement (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field" $ do
+renderElement (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field form" $ do
   rec el "label" $ do
         text (maybe "" id radioT)
         displayAnswer (radioO) (_hwidget_value answer)
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
-  return (getResponse <$> _hwidget_change answer)
+  dynVal <- holdUniqDyn (_hwidget_value answer)
+  return (getResponse <$> (updated dynVal))
   where
     radioID = ("radio_" <> ) . tshow $ rId
     getResponse Nothing = (rId, Clear)
@@ -71,7 +72,8 @@ displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
   dynText (showOpt <$> sel)
     where 
       showOpt = maybe "None" (opts !!)
-      visible p = "style" =: ("display: " <> if (p == Nothing) then "none" else "inline")
+      visible p = "style" =: ("visibility: " <> maybe "hidden" (const "visible") p)
+      -- visible _ = "style" =: "inline"
       selAttr p = ("class" =: "ui left pointing label") <> visible p
 
 optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
