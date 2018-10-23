@@ -18,7 +18,7 @@ import           Data.Maybe                 (fromMaybe, listToMaybe)
 import JSDOM.Types (castTo, Element)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
-import Data.Traversable (mapAccumR)
+import Data.Traversable (mapAccumL)
 
 import Datatype
 
@@ -33,7 +33,7 @@ parseQuestion eid que =
   )
 
 parseSurvey :: [Question] -> Survey
-parseSurvey qlis =  snd (mapAccumR parseQuestion 0 qlis)
+parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
 renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t SurveyUpdate)
 renderQuestionLis qLis =
