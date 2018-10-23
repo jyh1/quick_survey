@@ -35,7 +35,7 @@ parseQuestion eid que =
 parseSurvey :: [Question] -> Survey
 parseSurvey qlis =  snd (mapAccumR parseQuestion 0 qlis)
 
-renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t (Maybe Int))
+renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t SurveyUpdate)
 renderQuestionLis qLis =
   let qIDs = map tshow [1..]
       qMap = Map.fromList . zip qIDs <$> qLis 
@@ -43,27 +43,26 @@ renderQuestionLis qLis =
     do
       -- surveyMap :: Dynamic t (Map k (Event t (Maybe Int)))
       -- surveyMap <- divClass "ui bottom attached segment form" $ listWithKey qMap renderQuestion
-      widgetHold (return [never]) (mapM renderQuestion <$> qLis)
+      allUpdates <- widgetHold (return [never]) (mapM renderQuestion <$> qLis)
+      return (switchDyn (leftmost <$> allUpdates))
       -- let 
         -- surveyEvent :: Dynamic t (Event t (Maybe Int))
         -- surveyEvent = (leftmost . Map.elems) <$> surveyMap
       -- return (switchDyn surveyEvent)
-      return never
 
 
 
-renderQuestion :: (MonadWidget t m) => ParsedQuestion -> m (Event t ())
+renderQuestion :: (MonadWidget t m) => ParsedQuestion -> m (Event t SurveyUpdate)
 renderQuestion elis = do
-  -- simpleList elis renderDynEle
-  mapM renderElement elis
-  return never
+  elementRes <- mapM renderElement elis
+  return (leftmost elementRes)
 
 -- renderDynEle :: (MonadWidget t m) => Dynamic t ElementWithID -> m (Event t ElementResponse)
 -- renderDynEle dynEle = do
 --   display dynEle
 --   switchDyn <$> widgetHold (return never) (renderElement <$> (traceEvent "dynele" (updated dynEle)))
 
-renderElement :: (MonadWidget t m) => ElementWithID -> m (Event t ElementResponse)
+renderElement :: (MonadWidget t m) => ElementWithID -> m (Event t SurveyUpdate)
 renderElement (_, Title title) = divClass "ui top attached segment" $ do
   text title
   return never
@@ -71,21 +70,20 @@ renderElement (_, Title title) = divClass "ui top attached segment" $ do
 renderElement (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field" $ do
   rec el "label" $ do
         text (maybe "" id radioT)
-        displayAnswer (constDyn radioO) (_hwidget_value answer)
+        displayAnswer (radioO) (_hwidget_value answer)
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
   return (getResponse <$> _hwidget_change answer)
   where
     -- radio = getEle radioWithID
     radioID = ("radio_" <> ) . tshow $ rId
-    getResponse Nothing = Clear
-    getResponse (Just k) = Clicked k
+    getResponse Nothing = (rId, Clear)
+    getResponse (Just k) = (rId, Clicked k)
 
-displayAnswer :: (MonadWidget t m) => Dynamic t [T.Text] -> Dynamic t (Maybe Int) -> m ()
+displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> m ()
 displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
-  dynText (zipDynWith showOpt opts sel)
+  dynText (showOpt <$> sel)
     where 
-      showOpt opts Nothing = "None"
-      showOpt opts (Just k) = opts !! k
+      showOpt = maybe "None" (opts !!)
       visible p = "style" =: ("display: " <> if (p == Nothing) then "none" else "inline")
       selAttr p = ("class" =: "ui left pointing label") <> visible p
 
