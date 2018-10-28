@@ -1,6 +1,3 @@
-{-# OverloadedStrings #-}
-{-# ScopedTypeVariables #-}
-
 module Fileinput where
 
 import Reflex.Dom

@@ -15,7 +15,8 @@ import           Reflex.Dom.Contrib.Widgets.Common
 import           Data.Maybe                 (fromMaybe)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
-import Data.Traversable (mapAccumL)
+import Data.Traversable (mapAccumL) 
+
 
 import Datatype
 
@@ -97,22 +98,25 @@ semRadioGroup dynName dynEntryList cfg = do
 
   where
 
-    mkBtnAttrs nm =
-        "type" =: "radio"
+    mkBtnAttrs nm chked =
+        "type" =: "checkbox"
      <> "name" =: nm
-    mkCheckClass chked = "class" =: ("ui checkbox radio" <> if chked then " checked" else "")
+     <> "class" =: "hidden"
+     <> if chked then "checked" =: "checked" else mempty
+    -- mkCheckClass chked = "class" =: ("ui checkbox radio")
+    mkCheckClass = "class" =: "ui checkbox radio"
     handleOne _ dynV dynChecked = do
 
-      divClass "field" $ elDynAttr "div" (mkCheckClass <$> dynChecked) $ do
+      divClass "field" $ elAttr "div" mkCheckClass $ do
         let txt = zipDynWith (\v m -> fromMaybe "" $ Prelude.lookup v m)
                              dynV dynEntryList
 
-            btnAttrs = mkBtnAttrs <$> dynName
-            -- btnAttrs = mkBtnAttrs <$> dynName <*> dynChecked
-        (b,_) <- elDynAttr' "input" btnAttrs $ return ()
+            btnAttrs = mkBtnAttrs <$> dynName <*> dynChecked
+        _ <- elDynAttr' "input" btnAttrs $ return ()
+        (b,_) <- el' "label" $ dynText txt
         f <- holdDyn False $ leftmost [ False <$ (Blur  `domEvent` b)
-                                      , True  <$ (Focus `domEvent` b)]
-        el "label" $ dynText txt
+          , True  <$ (Focus `domEvent` b)]
+
         return (Click `domEvent` b, f)
 
 
