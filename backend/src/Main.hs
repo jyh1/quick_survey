@@ -34,6 +34,6 @@ userAPI :: Proxy QuestionAPI
 userAPI = Proxy
 
 app :: Application
-app = serve userAPI server1
+app = serve userAPI server
 
 

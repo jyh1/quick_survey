@@ -52,7 +52,7 @@ connectServant = do
                           (Proxy :: Proxy m)
                           (Proxy :: Proxy ())
                           (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
-      sid = constDyn (QParamSome "whatever")
+      sid = constDyn (Right "whatever")
   pb <- getPostBuild
   surveys <- getsurvey sid pb
   return (fmapMaybe fromReqRes surveys)

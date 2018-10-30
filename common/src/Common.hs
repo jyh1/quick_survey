@@ -13,7 +13,7 @@ import           Servant.API
 
 import Types
 
-type QuestionAPI = "survey" :> QueryParam "surveyid" T.Text :> Get '[JSON] [Question]
+type QuestionAPI = "survey" :> Capture "surveyid" T.Text :> Get '[JSON] [Question]
 
 sampleSurvey :: [Question]
 sampleSurvey = 
