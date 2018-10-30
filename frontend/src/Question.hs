@@ -18,7 +18,8 @@ import qualified Data.Map as Map
 import Data.Traversable (mapAccumL) 
 
 
-import Datatype
+import Types
+import Common
 
 jsonToQuestion :: T.Text -> Maybe [Question]
 jsonToQuestion = decode' . encodeUtf8 . fromStrict
@@ -122,9 +123,4 @@ semRadioGroup dynName dynEntryList cfg = do
 
 
 testQuestion :: [Question]
-testQuestion = 
-  [
-      Question {content = "What is your favorite color?", options = ["Blue","Red","Black"]}
-    , Question {content = "What is your name?", options = ["No","Yes","Ok"]}
-    , Question {content = "What is the readability?", options = ["1","2","3"]} 
-  ]
+testQuestion = sampleSurvey

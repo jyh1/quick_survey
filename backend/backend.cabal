@@ -59,7 +59,12 @@ executable backend
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.9 && <4.10
                      , common
-                     , reflex-dom
+                     , servant-server 
+                     , text
+                     , aeson
+                     , wai
+                     , warp
+                     , wai-cors
   
   -- Directories containing source files.
   hs-source-dirs:      src

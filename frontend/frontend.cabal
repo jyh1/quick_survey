@@ -73,6 +73,9 @@ executable frontend
                      , aeson
                      , reflex-dom-semui
                      , reflex-dom-contrib
+                     , servant-reflex
+                     , servant
+                     , servant-server
   
   -- Directories containing source files.
   hs-source-dirs:      src

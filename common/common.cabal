@@ -49,6 +49,7 @@ cabal-version:       >=1.10
 library
   -- Modules exported by the library.
   exposed-modules:     Common
+                       Types
   
   -- Modules included in this library but not exported.
   -- other-modules:       
@@ -58,7 +59,10 @@ library
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.9 && <4.10
-  
+                     , servant
+                     , aeson
+                     , text
+
   -- Directories containing source files.
   hs-source-dirs:      src
   

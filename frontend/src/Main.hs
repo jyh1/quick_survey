@@ -3,14 +3,25 @@
 import Reflex.Dom
 import Data.Monoid
 import Data.Text (Text)
+import qualified Data.Text as T
 import JSDOM.Types (liftJSM)
 import Reflex.Dom.SemanticUI
 import qualified Data.Map as Map
 import Language.Javascript.JSaddle.Evaluate
 import Data.Text.Encoding (encodeUtf8)
+import Data.Proxy
+
+
+import Servant.API
+
+import Servant.Reflex
+
 
 import Question
 import Fileinput
+
+import Common
+import Types
 
 main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
@@ -19,8 +30,13 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
-  buildE <- getPostBuild
-  let qLis =  leftmost [(parseSurvey testQuestion) <$ buildE, parsedQs]
+  -- buildE <- getPostBuild
+  serventS <- connectServant
+  let qLis =  leftmost [
+                  -- (parseSurvey testQuestion) <$ buildE
+                  parseSurvey <$> serventS
+                , parsedQs
+              ]
   response <- renderQuestionLis qLis
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
@@ -78,3 +94,31 @@ header = do
   el "p" $ do
     text "Select an image file."
 
+
+
+connectServant :: forall t m.MonadWidget t m => m (Event t [Question])
+
+connectServant = do
+  let getsurvey = client (Proxy :: Proxy QuestionAPI)
+                          (Proxy :: Proxy m)
+                          (Proxy :: Proxy ())
+                          (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
+      sid = constDyn (QParamSome "whatever")
+  pb <- getPostBuild
+  surveys <- getsurvey sid pb
+  return (fmapMaybe fromReqRes surveys)
+  -- widgetHold (text "waiting...") (renderReqRes <$> surveys)
+
+fromReqRes :: ReqResult tag a -> Maybe a
+fromReqRes (ResponseSuccess _ s _) = Just s
+fromReqRes _ = Nothing
+
+renderReqRes :: MonadWidget t m => ReqResult tag [Question] -> m ()
+renderReqRes (ResponseSuccess _ s _) = text (Types.tshow s)
+renderReqRes _ = text "error!"
+-- getSurvey :: MonadWidget t m => Dynamic t (QParam T.Text) -> Event t () -> m (Event t (ReqResult () [Question]))
+-- getSurvey = client (Proxy :: Proxy QuestionAPI)
+--                           (Proxy :: Proxy m)
+--                           (Proxy :: Proxy ())
+--                           (constDyn (BasePath "/"))
+  
