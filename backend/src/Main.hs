@@ -23,17 +23,17 @@ import Common
 import Types
 
 main :: IO ()
-main = run 8081 (simpleCors app1)
+main = run 8081 (simpleCors app)
 
 
 
-server1 :: Server QuestionAPI
-server1 _ = return sampleSurvey
+server :: Server QuestionAPI
+server _ = return sampleSurvey
 
 userAPI :: Proxy QuestionAPI
 userAPI = Proxy
 
-app1 :: Application
-app1 = serve userAPI server1
+app :: Application
+app = serve userAPI server1
 
 

@@ -64,4 +64,3 @@ fromReqRes _ = Nothing
 renderReqRes :: MonadWidget t m => ReqResult tag [Question] -> m ()
 renderReqRes (ResponseSuccess _ s _) = text (Types.tshow s)
 renderReqRes _ = text "error!"
-  
