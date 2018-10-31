@@ -65,6 +65,12 @@ executable backend
                      , wai
                      , warp
                      , wai-cors
+                     , persistent
+                     , persistent-sqlite
+                     , persistent-template
+                     , transformers
+                     , bytestring
+                     , monad-logger
   
   -- Directories containing source files.
   hs-source-dirs:      src

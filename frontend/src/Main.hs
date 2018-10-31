@@ -52,7 +52,7 @@ connectServant = do
                           (Proxy :: Proxy m)
                           (Proxy :: Proxy ())
                           (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
-      sid = constDyn (Right "whatever")
+      sid = constDyn (Right "test")
   pb <- getPostBuild
   surveys <- getsurvey sid pb
   return (fmapMaybe fromReqRes surveys)
