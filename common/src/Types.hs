@@ -1,4 +1,7 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 
 module Types where
@@ -6,6 +9,7 @@ module Types where
 import Data.Aeson
 import qualified Data.Text as T
 import GHC.Generics
+import           Servant.API
 
 data Question = Question {
       content :: T.Text
@@ -16,6 +20,8 @@ instance ToJSON Question where
     toEncoding = genericToEncoding defaultOptions
 
 instance FromJSON Question
+
+type SurveyContent = [Question]
 
 data QuestionElement = 
       RadioGroup {radioTitle :: Maybe T.Text, radioOpts :: [T.Text]}
@@ -36,7 +42,12 @@ type Survey = [ParsedQuestion]
 data ElementResponse = 
       Clicked ElementID
     | Clear
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
+
+instance ToJSON ElementResponse where 
+    toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON ElementResponse
 
 type ElementID = Int
 
@@ -44,5 +55,19 @@ type FieldID = Int
 
 type SurveyUpdate = WithID FieldID ElementResponse
 
-tshow :: (Show a) => a -> T.Text
-tshow = T.pack . show
+
+data SavedStatus = Success | Failed
+    deriving (Show, Generic, Eq)
+instance ToJSON SavedStatus
+instance FromJSON SavedStatus
+
+type SurveyAPI = 
+    "survey" :> Capture "surveyid" T.Text :>
+      (
+             ( Get '[JSON] SurveyContent )
+        :<|> ( ReqBody '[JSON] SurveyContent :> Post '[JSON] SavedStatus)
+        :<|> ( Capture "fieldid" FieldID :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
+      )
+
+type API = SuveryAPI
+
