@@ -13,7 +13,7 @@ module Main where
 
 import Network.Wai
 import Network.Wai.Handler.Warp
-import Data.Aeson.Types
+import Data.Aeson.Types hiding (Success)
 import GHC.Generics
 import Servant
 import qualified Data.Text as T
@@ -36,10 +36,10 @@ main = runServer ":memory:"
 
 
 
--- server :: Server QuestionAPI
+-- server :: Server API
 -- server _ = return sampleSurvey
 
-userAPI :: Proxy QuestionAPI
+userAPI :: Proxy API
 userAPI = Proxy
 
 app :: ConnectionPool -> Application
@@ -60,22 +60,27 @@ runServer :: T.Text -> IO ()
 runServer sqliteFile =
   run 8081 =<< (simpleCors <$> mkApp sqliteFile)
 
-server :: ConnectionPool -> Server QuestionAPI
-server pool =
-    surveyGetH
+server :: ConnectionPool -> Server API
+server pool sName =
+    surveyGetH :<|> surveyUploadH :<|> saveResponseH
     where
-        -- userAddH newUser = liftIO $ userAdd newUser
-        -- userGetH name    = liftIO $ userGet name
-        surveyGetH = liftIO . surveyGet
+        surveyGetH = liftIO surveyGet
+        surveyUploadH ns = liftIO (surveyUpload ns)
+        saveResponseH f res = liftIO (saveResponse f res)
 
-        -- userAdd :: User -> IO (Maybe (Key User))
-        -- userAdd newUser = flip runSqlPersistMPool pool $ do
-        -- exists <- selectFirst [UserName ==. (userName newUser)] []
-        -- case exists of
-        --     Nothing -> Just <$> insert newUser
-        --     Just _ -> return Nothing
+        surveyUpload :: SurveyContent -> IO SavedStatus
+        surveyUpload newSurvey = flip runSqlPersistMPool pool $ do
+          exists <- selectFirst [SurveyName ==. sName] []
+          case exists of
+              Nothing -> do
+                _ <- insert (Survey sName newSurvey)
+                return Success
+              Just _ -> return Failed
 
-        surveyGet :: T.Text -> IO [Question]
-        surveyGet sId = flip runSqlPersistMPool pool $ do
-            mSurvey <- selectFirst [SurveyName ==. sId] []
+        surveyGet :: IO [Question]
+        surveyGet = flip runSqlPersistMPool pool $ do
+            mSurvey <- selectFirst [SurveyName ==. sName] []
             return $ fromMaybe [] (surveyContent <$> entityVal <$> mSurvey)
+
+        saveResponse :: FieldID -> ElementResponse -> IO ElementResponse
+        saveResponse = undefined
