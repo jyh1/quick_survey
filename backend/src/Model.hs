@@ -7,6 +7,8 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE FlexibleInstances               #-}
+{-# LANGUAGE DeriveGeneric               #-}
 
 module Model where
 
@@ -27,12 +29,12 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Survey
     name T.Text
     content [Question]
-    UniqueSurveyName name
-    deriving Show
+    Primary name
 Response
     field FieldID
-    survey T.Text
+    name T.Text
     response ElementResponse
     user T.Text
-    -- UniqueResponse survey field user
+    Foreign Survey fkparent name
+    UniqueResponse name field user
 |]
