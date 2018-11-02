@@ -69,5 +69,5 @@ type SurveyAPI =
         :<|> ( Capture "fieldid" FieldID :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
 
-type API = SuveryAPI
+type API = SurveyAPI
 

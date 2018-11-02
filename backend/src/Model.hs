@@ -19,14 +19,8 @@ import Database.Persist.Types
 import Data.ByteString.Lazy(toStrict)
 
 import Types hiding (Survey)
+import PersistentType
 
-instance PersistField Question where
-    toPersistValue q = PersistByteString $ toStrict (encode q)
-    fromPersistValue (PersistByteString s) = 
-        case eitherDecodeStrict s of
-            Left s -> Left $ T.pack s
-            Right q -> Right q
-    fromPersistValue _ = Left "Model.hs: Error trying to deserialize a Question"
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -35,4 +29,10 @@ Survey
     content [Question]
     UniqueSurveyName name
     deriving Show
+Response
+    field FieldID
+    survey T.Text
+    response ElementResponse
+    user T.Text
+    -- UniqueResponse survey field user
 |]
