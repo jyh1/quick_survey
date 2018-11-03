@@ -66,7 +66,7 @@ type SurveyAPI =
       (
              ( Get '[JSON] SurveyContent )
         :<|> ( ReqBody '[JSON] SurveyContent :> Post '[JSON] SavedStatus)
-        :<|> ( Capture "fieldid" FieldID :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
+        :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
 
 type API = SurveyAPI

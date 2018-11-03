@@ -21,7 +21,7 @@ import Network.Wai.Middleware.Cors
 import           Database.Persist.Sqlite ( ConnectionPool, createSqlitePool
                                          , runSqlPool, runSqlPersistMPool
                                          , runMigration, selectFirst, (==.)
-                                         , insert, entityVal, upsert)
+                                         , insert, entityVal, repsert)
 import Data.Maybe(fromMaybe)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Logger (runStderrLoggingT, logInfoN)
@@ -32,7 +32,7 @@ import Types
 import Model
 
 main :: IO ()
-main = runServer ":memory:"
+main = runServer "test.sqlite"
 
 
 
@@ -87,5 +87,5 @@ server pool sName =
         saveResponse field user res = 
           let newResponse = Response field sName res user in
             flip runSqlPersistMPool pool $ do
-              upsert newResponse []
+              repsert (ResponseKey field sName user) newResponse
               return res

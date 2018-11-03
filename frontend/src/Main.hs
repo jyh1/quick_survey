@@ -22,6 +22,7 @@ import Fileinput
 
 import Common
 import Types
+import Request
 
 main :: IO ()
 main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
@@ -30,14 +31,15 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
   -- buildE <- getPostBuild
-  serventS <- connectServant
+  (serventS, postUpdate) <- ajaxFunctions
   let qLis =  leftmost [
                   -- (parseSurvey testQuestion) <$ buildE
                   parseSurvey <$> serventS
                 , parsedQs
               ]
   response <- renderQuestionLis qLis
-  responseHistory <- (foldDyn (:) [] response)
+  echoBack <- postUpdate response
+  responseHistory <- (foldDyn (:) [] echoBack)
   display responseHistory
 
 importExternalJS :: MonadWidget t m => m ()
@@ -46,21 +48,33 @@ importExternalJS = liftJSM $ do
   _ <- eval semanticJS
   return ()
 
-connectServant :: forall t m.MonadWidget t m => m (Event t [Question])
-connectServant = do
-  let getsurvey = client (Proxy :: Proxy QuestionAPI)
-                          (Proxy :: Proxy m)
-                          (Proxy :: Proxy ())
-                          (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
-      sid = constDyn (Right "test")
-  pb <- getPostBuild
-  surveys <- getsurvey sid pb
-  return (fmapMaybe fromReqRes surveys)
+-- type PostSurvey t m = Dynamic t (Either Text [Question]) -> Event t () -> m (Event t (ReqResult () SavedStatus))
+-- type PostResponse t m = Dynamic t (Either Text Int) -> Dynamic t (Either Text Text) -> Dynamic t (Either Text ElementResponse) -> Event t () -> m (Event t (ReqResult () ElementResponse))
+-- type TestAPI = 
+-- connectServant :: forall t m.MonadWidget t m => m (Event t SurveyContent, Event t SurveyUpdate -> Event t ElementResponse)
+-- connectServant = do
+--   let requestFunc = client (Proxy :: Proxy API)
+--         (Proxy :: Proxy m)
+--         (Proxy :: Proxy ())
+--         (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
+--       sid = constDyn (Right ("test":: Text))
+--       constructParams k = constDyn (Right k)
+--       getsurvey :<|> _ :<|> postUpdate = requestFunc sid
+--       updateFun surveyRes = postUpdate ( (getId <$> surveyRes))
+--   pb <- getPostBuild
+--   surveys <- getsurvey pb
+--   return (fmapMaybe fromReqRes surveys)
 
-fromReqRes :: ReqResult tag a -> Maybe a
-fromReqRes (ResponseSuccess _ s _) = Just s
-fromReqRes _ = Nothing
+-- getSurvey :: MonadWidget t m => m (Event t SurveyContent)
+-- getSurvey = do
+--   pb <- getPostBuild
+--   getsurvey pb
+--   return (fmapMaybe fromReqRes surveys)
+--     where
+--       sid = constDyn (Right ("test":: Text))
+--       getsurvey :<|> _ :<|> _ = ajaxFunctions sid
 
-renderReqRes :: MonadWidget t m => ReqResult tag [Question] -> m ()
-renderReqRes (ResponseSuccess _ s _) = text (Types.tshow s)
+
+renderReqRes :: MonadWidget t m => ReqResult tag SurveyContent -> m ()
+renderReqRes (ResponseSuccess _ s _) = text (Common.tshow s)
 renderReqRes _ = text "error!"
