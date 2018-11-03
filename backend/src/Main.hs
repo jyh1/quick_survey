@@ -21,10 +21,10 @@ import Network.Wai.Middleware.Cors
 import           Database.Persist.Sqlite ( ConnectionPool, createSqlitePool
                                          , runSqlPool, runSqlPersistMPool
                                          , runMigration, selectFirst, (==.)
-                                         , insert, entityVal)
+                                         , insert, entityVal, upsert)
 import Data.Maybe(fromMaybe)
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Logger (runStderrLoggingT)
+import           Control.Monad.Logger (runStderrLoggingT, logInfoN)
 
 import Common
 import Types
@@ -52,8 +52,9 @@ mkApp sqliteFile = do
     createSqlitePool sqliteFile 5
 
   runSqlPool (runMigration migrateAll) pool
-  flip runSqlPersistMPool pool $ 
+  flip runSqlPersistMPool pool $ do
     insert (Survey "test" sampleSurvey)
+    insert (Response 1 "test" (Clicked 2) "jyh1")
   return $ app pool
 
 runServer :: T.Text -> IO ()
@@ -66,7 +67,7 @@ server pool sName =
     where
         surveyGetH = liftIO surveyGet
         surveyUploadH ns = liftIO (surveyUpload ns)
-        saveResponseH f res = liftIO (saveResponse f res)
+        saveResponseH f u res= liftIO (saveResponse f u res)
 
         surveyUpload :: SurveyContent -> IO SavedStatus
         surveyUpload newSurvey = flip runSqlPersistMPool pool $ do
@@ -82,5 +83,9 @@ server pool sName =
             mSurvey <- selectFirst [SurveyName ==. sName] []
             return $ fromMaybe [] (surveyContent <$> entityVal <$> mSurvey)
 
-        saveResponse :: FieldID -> ElementResponse -> IO ElementResponse
-        saveResponse = undefined
+        saveResponse :: FieldID -> T.Text -> ElementResponse -> IO ElementResponse
+        saveResponse field user res = 
+          let newResponse = Response field sName res user in
+            flip runSqlPersistMPool pool $ do
+              upsert newResponse []
+              return res

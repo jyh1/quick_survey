@@ -36,5 +36,6 @@ Response
     response ElementResponse
     user T.Text
     Foreign Survey fkparent name
-    UniqueResponse name field user
+    Primary field name user
+    deriving Show
 |]
