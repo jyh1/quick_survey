@@ -34,34 +34,43 @@ parseQuestion eid que =
 parseSurvey :: [Question] -> Survey
 parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
-renderQuestionLis :: (MonadWidget t m) => Event t Survey -> m (Event t SurveyUpdate)
-renderQuestionLis qLis = do
-  allUpdates <- widgetHold (return [never]) (mapM renderQuestion <$> qLis)
+type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
+
+renderQuestionLis :: (MonadWidget t m) => PostRes t m -> Event t Survey -> m (Event t SurveyUpdate)
+renderQuestionLis postRes qLis = do
+  allUpdates <- widgetHold (return [never]) (mapM (renderQuestion postRes) <$> qLis)
   return (switchDyn (leftmost <$> allUpdates))
 
 
-renderQuestion :: (MonadWidget t m) => ParsedQuestion -> m (Event t SurveyUpdate)
-renderQuestion elis = do
-  elementRes <- mapM renderElement elis
+renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)
+renderQuestion postRes elis = do
+  elementRes <- mapM (renderElement postRes) elis
   return (leftmost elementRes)
 
 
-renderElement :: (MonadWidget t m) => ElementWithID -> m (Event t SurveyUpdate)
-renderElement (_, Title title) = divClass "ui top attached segment" $ do
+renderElement :: (MonadWidget t m) => PostRes t m -> ElementWithID -> m (Event t SurveyUpdate)
+renderElement _ (_, Title title) = divClass "ui top attached segment" $ do
   text title
   return never
 
-renderElement (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field form" $ do
+renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field form" $ do
   rec el "label" $ do
-        text (maybe "" id radioT)
-        displayAnswer (radioO) (_hwidget_value answer)
+        text (fromMaybe "" radioT)
+        displayAnswer radioO savedDyn
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
-  dynVal <- holdUniqDyn (_hwidget_value answer)
-  return (getResponse <$> (updated dynVal))
+      eventSel <- updated <$> holdUniqDyn (_hwidget_value answer)
+      let eventResponse = getResponse <$> eventSel
+      postToServer <- postRes rId eventResponse
+      -- TODO Initial value of displayAnswer
+      savedDyn <- holdDyn Nothing (fromResponse <$> postToServer)
+  return ((\x -> (rId, x)) <$> eventResponse)
   where
     radioID = ("radio_" <> ) . tshow $ rId
-    getResponse Nothing = (rId, Clear)
-    getResponse (Just k) = (rId, Clicked k)
+    getResponse Nothing = Clear
+    getResponse (Just k) = Clicked k
+    fromResponse Clear = Nothing
+    fromResponse (Clicked k) = Just k
+    
 
 displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> m ()
 displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $

@@ -30,16 +30,16 @@ main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
-  -- buildE <- getPostBuild
-  (serventS, postUpdate) <- ajaxFunctions
+  let (serventS, postRes) = ajaxFunctions (constDyn "test")
+  (testSurveys, _) <- getPostBuild >>= serventS
   let qLis =  leftmost [
                   -- (parseSurvey testQuestion) <$ buildE
-                  parseSurvey <$> serventS
+                  parseSurvey <$> testSurveys
                 , parsedQs
               ]
-  response <- renderQuestionLis qLis
-  echoBack <- postUpdate response
-  responseHistory <- (foldDyn (:) [] echoBack)
+  response <- renderQuestionLis (postRes (constDyn "jyh1")) qLis
+  -- echoBack <- postUpdate response
+  responseHistory <- (foldDyn (:) [] response)
   display responseHistory
 
 importExternalJS :: MonadWidget t m => m ()
@@ -47,32 +47,6 @@ importExternalJS = liftJSM $ do
   _ <- eval jqueryJS
   _ <- eval semanticJS
   return ()
-
--- type PostSurvey t m = Dynamic t (Either Text [Question]) -> Event t () -> m (Event t (ReqResult () SavedStatus))
--- type PostResponse t m = Dynamic t (Either Text Int) -> Dynamic t (Either Text Text) -> Dynamic t (Either Text ElementResponse) -> Event t () -> m (Event t (ReqResult () ElementResponse))
--- type TestAPI = 
--- connectServant :: forall t m.MonadWidget t m => m (Event t SurveyContent, Event t SurveyUpdate -> Event t ElementResponse)
--- connectServant = do
---   let requestFunc = client (Proxy :: Proxy API)
---         (Proxy :: Proxy m)
---         (Proxy :: Proxy ())
---         (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
---       sid = constDyn (Right ("test":: Text))
---       constructParams k = constDyn (Right k)
---       getsurvey :<|> _ :<|> postUpdate = requestFunc sid
---       updateFun surveyRes = postUpdate ( (getId <$> surveyRes))
---   pb <- getPostBuild
---   surveys <- getsurvey pb
---   return (fmapMaybe fromReqRes surveys)
-
--- getSurvey :: MonadWidget t m => m (Event t SurveyContent)
--- getSurvey = do
---   pb <- getPostBuild
---   getsurvey pb
---   return (fmapMaybe fromReqRes surveys)
---     where
---       sid = constDyn (Right ("test":: Text))
---       getsurvey :<|> _ :<|> _ = ajaxFunctions sid
 
 
 renderReqRes :: MonadWidget t m => ReqResult tag SurveyContent -> m ()
