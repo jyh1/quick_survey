@@ -71,7 +71,7 @@ executable frontend
                      , mtl
                      , dependent-sum
                      , aeson
-                     , reflex-dom-semui
+                    --  , reflex-dom-semui
                      , reflex-dom-contrib
                      , servant-reflex
                      , servant
