@@ -56,12 +56,14 @@ renderElement _ (_, Title title) = divClass "ui top attached segment" $ do
 renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field form" $ do
   rec el "label" $ do
         text (fromMaybe "" radioT)
-        displayAnswer radioO savedDyn
+        displayAnswer radioO savedDyn busy
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
       eventSel <- updated <$> holdUniqDyn (_hwidget_value answer)
       let eventResponse = getResponse <$> eventSel
       postToServer <- postRes rId eventResponse
       -- TODO Initial value of displayAnswer
+      busy <- foldDyn (+) 0 
+                (leftmost [ 1 <$ eventResponse, -1 <$ postToServer])
       savedDyn <- holdDyn Nothing (fromResponse <$> postToServer)
   return ((\x -> (rId, x)) <$> eventResponse)
   where
@@ -72,16 +74,22 @@ renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom atta
     fromResponse (Clicked k) = Just k
     
 
-displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> m ()
-displayAnswer opts sel =
-  elDynAttr "div" (selAttr <$> sel) $ do
-    elAttr "i" ("class" =: "check icon") blank
-    dynText (showOpt <$> sel)
+displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> Dynamic t Int -> m ()
+displayAnswer opts sel busy =
+  elDynAttr "div" (zipDynWith selAttr sel busy) $ do
+    encloseEle (> 0) $ do
+      elAttr "i" ("class" =: "sync icon") blank
+      text "Syncing"
+    encloseEle (== 0) $ do
+      elAttr "i" ("class" =: "check icon") blank
+      dynText (showOpt <$> sel)
+    return ()
     where 
       showOpt = maybe "None" (opts !!)
       visible p = "style" =: ("visibility: " <> maybe "hidden" (const "visible") p)
-      -- visible _ = "style" =: "inline"
-      selAttr p = ("class" =: "ui left pointing green basic label") <> visible p
+      display p = "style" =: ("display:" <> if p then "inline" else "none")
+      encloseEle p ele = elDynAttr "div" ((display . p) <$> busy) ele
+      selAttr p bc = ("class" =: ("ui left pointing basic label " <> if bc == 0 then "green" else "")) <> if bc == 0 then visible p else mempty
 
 optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
 optionRadioGroup groupK opts =
