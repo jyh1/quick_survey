@@ -41,7 +41,7 @@ run _port = id
 run :: Int -> JSM () -> IO ()
 run port f = do
     -- app <- jsaddleOr defaultConnectionOptions (f >> syncPoint) jsaddleApp
-    serverApp <- mkApp "test.sqlite"
+    serverApp <- mkApp ":memory:"
     app <- jsaddleWithAppOr defaultConnectionOptions (f >> syncPoint) serverApp
     runSettings (setPort port (setTimeout 3600 defaultSettings)) app
 #endif

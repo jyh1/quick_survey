@@ -82,9 +82,8 @@ executable backend
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Application
+  exposed-modules:     Application, Model, PersistentType
                        
-  ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -fwarn-incomplete-patterns
   -- Modules included in this library but not exported.
   -- other-modules:       
   

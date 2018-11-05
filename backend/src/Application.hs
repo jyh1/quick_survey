@@ -39,7 +39,7 @@ mkApp sqliteFile = do
   pool <- runStderrLoggingT $ do
     createSqlitePool sqliteFile 5
 
-  -- runSqlPool (runMigration migrateAll) pool
+  runSqlPool (runMigration migrateAll) pool
   flip runSqlPersistMPool pool $ do
     insert (Survey "test" sampleSurvey)
     insert (Response 1 "test" (Clicked 2) "jyh1")

@@ -75,7 +75,14 @@ executable frontend
                      , reflex-dom-contrib
                      , servant-reflex
                      , servant
-                     , servant-server
+                    --  , servant-server
+                     , reflex-dom-core
+                     , jsaddle-warp
+
+                    --  debug
+                     , warp
+                     , backend
+                     , websockets
   
   -- Directories containing source files.
   hs-source-dirs:      src
