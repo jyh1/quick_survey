@@ -1,34 +1,18 @@
 {-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings, ScopedTypeVariables #-}
 
 import Reflex.Dom.Core
-import Data.Monoid
-import Data.Text (Text)
-import qualified Data.Text as T
-import JSDOM.Types (liftJSM)
-import Reflex.Dom.SemanticUI
 import qualified Data.Map as Map
-import Language.Javascript.JSaddle.Evaluate
-import Data.Text.Encoding (encodeUtf8)
-import Data.Proxy
-
-import Servant.API
-
-import Servant.Reflex
 
 
 import Question
 import Fileinput
-import Application
 import Debug (run)
 
 
-import Common
-import Types
 import Request
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  -- importExternalJS
   inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
@@ -40,15 +24,9 @@ main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
                 , parsedQs
               ]
   response <- renderQuestionLis (postRes (constDyn "jyh1")) qLis
-  -- echoBack <- postUpdate response
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
 
--- importExternalJS :: MonadWidget t m => m ()
--- importExternalJS = liftJSM $ do
---   _ <- eval jqueryJS
---   _ <- eval semanticJS
---   return ()
 headElement :: MonadWidget t m => m ()
 headElement = do
   el "title" $ text "Survey"
@@ -59,7 +37,3 @@ headElement = do
         , ("type", "text/css")
         , ("href", link)
       ]) $ return ()
-
-renderReqRes :: MonadWidget t m => ReqResult tag SurveyContent -> m ()
-renderReqRes (ResponseSuccess _ s _) = text (Common.tshow s)
-renderReqRes _ = text "error!"

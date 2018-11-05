@@ -1,17 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
------------------------------------------------------------------------------
---
--- Module      :  Language.Javascript.JSaddle.WebSockets
--- Copyright   :  (c) Hamish Mackenzie
--- License     :  MIT
---
--- Maintainer  :  Hamish Mackenzie <Hamish.K.Mackenzie@googlemail.com>
---
--- |
---
------------------------------------------------------------------------------
 
 module Debug (
   -- * Running JSM over WebSockets
@@ -40,7 +29,6 @@ run _port = id
 #else
 run :: Int -> JSM () -> IO ()
 run port f = do
-    -- app <- jsaddleOr defaultConnectionOptions (f >> syncPoint) jsaddleApp
     serverApp <- mkApp ":memory:"
     app <- jsaddleWithAppOr defaultConnectionOptions (f >> syncPoint) serverApp
     runSettings (setPort port (setTimeout 3600 defaultSettings)) app
