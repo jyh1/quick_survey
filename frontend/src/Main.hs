@@ -27,8 +27,8 @@ import Types
 import Request
 
 main :: IO ()
-main = run 3003 $ mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
-  importExternalJS
+main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
+  -- importExternalJS
   inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
@@ -44,12 +44,21 @@ main = run 3003 $ mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui cont
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
 
-importExternalJS :: MonadWidget t m => m ()
-importExternalJS = liftJSM $ do
-  _ <- eval jqueryJS
-  _ <- eval semanticJS
-  return ()
-
+-- importExternalJS :: MonadWidget t m => m ()
+-- importExternalJS = liftJSM $ do
+--   _ <- eval jqueryJS
+--   _ <- eval semanticJS
+--   return ()
+headElement :: MonadWidget t m => m ()
+headElement = do
+  el "title" $ text "Survey"
+  styleSheet "static/semantic.css"
+  where
+    styleSheet link = elAttr "link" (Map.fromList [
+          ("rel", "stylesheet")
+        , ("type", "text/css")
+        , ("href", link)
+      ]) $ return ()
 
 renderReqRes :: MonadWidget t m => ReqResult tag SurveyContent -> m ()
 renderReqRes (ResponseSuccess _ s _) = text (Common.tshow s)

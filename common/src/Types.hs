@@ -69,5 +69,7 @@ type SurveyAPI =
         :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
 
+type StaticAPI = "static" :> Raw
+
 type API = SurveyAPI
 

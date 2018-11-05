@@ -28,11 +28,11 @@ import Types
 import Model
 
 
-userAPI :: Proxy API
+userAPI :: Proxy (API :<|> StaticAPI)
 userAPI = Proxy
 
 app :: ConnectionPool -> Application
-app pool = serve userAPI $ server pool
+app pool = serve userAPI $ (server pool :<|> serverStatic)
 
 mkApp :: T.Text -> IO Application
 mkApp sqliteFile = do
@@ -44,6 +44,8 @@ mkApp sqliteFile = do
     insert (Survey "test" sampleSurvey)
     insert (Response 1 "test" (Clicked 2) "jyh1")
   return $ app pool
+
+
 
 server :: ConnectionPool -> Server API
 server pool sName =
@@ -73,3 +75,11 @@ server pool sName =
             flip runSqlPersistMPool pool $ do
               repsert (ResponseKey field sName user) newResponse
               return res
+
+
+
+-- staticAPI :: Proxy StaticAPI
+-- staticAPI = Proxy
+
+serverStatic :: Server StaticAPI
+serverStatic = serveDirectoryWebApp "Semantic-UI-CSS"
