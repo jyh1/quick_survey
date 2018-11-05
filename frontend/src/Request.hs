@@ -31,7 +31,7 @@ ajaxFunctions sid =
     let requestFunc = client (Proxy :: Proxy API)
           (Proxy :: Proxy m)
           (Proxy :: Proxy ())
-          (constDyn (BaseFullUrl Http "localhost" 8081 "/"))
+          (constDyn (BaseFullUrl Http "localhost" 8081 "/server"))
         getsurvey :<|> _ :<|> postUpdate = requestFunc (Right <$> sid)
 
         fetchSurvey fireE = do

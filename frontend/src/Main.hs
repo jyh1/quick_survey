@@ -1,6 +1,6 @@
 {-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings, ScopedTypeVariables #-}
 
-import Reflex.Dom
+import Reflex.Dom.Core
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -11,7 +11,6 @@ import Language.Javascript.JSaddle.Evaluate
 import Data.Text.Encoding (encodeUtf8)
 import Data.Proxy
 
-
 import Servant.API
 
 import Servant.Reflex
@@ -19,13 +18,16 @@ import Servant.Reflex
 
 import Question
 import Fileinput
+import Application
+import Debug (run)
+
 
 import Common
 import Types
 import Request
 
 main :: IO ()
-main = mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
+main = run 3003 $ mainWidgetWithCss (encodeUtf8 semanticCSS) $ divClass "ui container" $ do
   importExternalJS
   inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig

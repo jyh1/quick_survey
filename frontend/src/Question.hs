@@ -73,13 +73,15 @@ renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom atta
     
 
 displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> m ()
-displayAnswer opts sel = elDynAttr "div" (selAttr <$> sel) $
-  dynText (showOpt <$> sel)
+displayAnswer opts sel =
+  elDynAttr "div" (selAttr <$> sel) $ do
+    elAttr "i" ("class" =: "check icon") blank
+    dynText (showOpt <$> sel)
     where 
       showOpt = maybe "None" (opts !!)
       visible p = "style" =: ("visibility: " <> maybe "hidden" (const "visible") p)
       -- visible _ = "style" =: "inline"
-      selAttr p = ("class" =: "ui left pointing label") <> visible p
+      selAttr p = ("class" =: "ui left pointing green basic label") <> visible p
 
 optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
 optionRadioGroup groupK opts =

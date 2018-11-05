@@ -1,5 +1,6 @@
 (import ./reflex-platform {}).project ({ pkgs, ... }: {
-  useWarp = true;
+  # useWarp = true;
+  withHoogle = false;
 
   packages = {
     common = ./common;

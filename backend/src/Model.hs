@@ -25,7 +25,8 @@ import PersistentType
 
 
 
-share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+-- share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+share [mkPersist sqlSettings] [persistLowerCase|
 Survey
     name T.Text
     content [Question]
