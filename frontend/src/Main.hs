@@ -14,8 +14,8 @@ import Request
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  createOrFetch
-  inputConfig <- loadingFile
+  inputConfig <- createOrFetch
+  -- inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
   (surveyName, submitE) <- inputSurveyName
@@ -49,13 +49,14 @@ inputSurveyName = do
   return (name, submitBtn)
 
 
-fileInputButton :: MonadWidget t m => m ()
-fileInputButton = do
+fileInputButton :: MonadWidget t m => m (Event t T.Text)
+fileInputButton =
   elClass "label" "ui primary button" $ do
     text "Create"
-    fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
-    return ()
-createSurvey :: MonadWidget t m => m ()
+    fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
+    getFileEvent fileButton
+    
+createSurvey :: MonadWidget t m => m (Event t T.Text)
 createSurvey = do
   divClass "ui icon header" $ do
     elClass "i" "file alternate outline icon" blank
@@ -77,10 +78,11 @@ findSurvey = do
   searchSurvey
 
 
-createOrFetch :: MonadWidget t m => m ()
+createOrFetch :: MonadWidget t m => m (Event t T.Text)
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column stackable center aligned grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
-      divClass "column" createSurvey
+      loadedSurvey <- divClass "column" createSurvey
       divClass "column" findSurvey
+      return loadedSurvey

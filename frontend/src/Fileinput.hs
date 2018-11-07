@@ -21,5 +21,9 @@ dataURLFileReader request =
 -- loading the first local file
 loadingFile :: MonadWidget t m => m (Event t Text)
 loadingFile = do
-    filesDyn <- value <$> fileInput def
-    dataURLFileReader . fmapMaybe listToMaybe . updated $ filesDyn
+    filesDyn <- fileInput def
+    getFileEvent filesDyn
+
+getFileEvent :: MonadWidget t m => (FileInput d t) -> m (Event t Text)
+getFileEvent fileButton = 
+  dataURLFileReader . fmapMaybe listToMaybe . updated $ (value fileButton)
