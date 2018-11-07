@@ -21,11 +21,13 @@ eventToParams e = holdDyn (Left "None") (Right <$> e)
 
 type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t T.Text)
 type PostResponse t m = Dynamic t T.Text -> FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
+type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
 
 ajaxFunctions :: forall t m. MonadWidget t m => Dynamic t T.Text -> 
     (
         GetSurvey t m
       , PostResponse t m
+      , PostSurvey t m
     )
 ajaxFunctions sid =
     let requestFunc = client (Proxy :: Proxy API)
@@ -33,7 +35,7 @@ ajaxFunctions sid =
           (Proxy :: Proxy ())
         --   (constDyn (BaseFullUrl Http "localhost" 8081 "/server"))
           (constDyn (BasePath "/"))
-        getsurvey :<|> _ :<|> postUpdate = requestFunc (Right <$> sid)
+        getsurvey :<|> postsurvey :<|> postUpdate = requestFunc (Right <$> sid)
 
         fetchSurvey fireE = do
             res  <- getsurvey fireE
@@ -43,6 +45,10 @@ ajaxFunctions sid =
             contentParam <- eventToParams eleRes
             postToServer <- postUpdate idParam (Right <$> user) contentParam (() <$ eleRes)
             return (fmapMaybe reqSuccess postToServer)
+        saveSurvey sCont fireE = do
+            surveyParam <- eventToParams sCont
+            savedEvent <- postsurvey surveyParam fireE
+            return (fmapMaybe reqSuccess savedEvent)
     in
-        (fetchSurvey, updateFun)
+        (fetchSurvey, updateFun, saveSurvey)
 
