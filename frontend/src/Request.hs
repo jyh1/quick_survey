@@ -23,7 +23,7 @@ type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t T.Text)
 type PostResponse t m = Dynamic t T.Text -> FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
 
-ajaxFunctions :: forall t m. MonadWidget t m => Dynamic t T.Text -> 
+ajaxFunctions :: forall t m. MonadWidget t m => Dynamic t (Either T.Text T.Text) -> 
     (
         GetSurvey t m
       , PostResponse t m
@@ -35,7 +35,7 @@ ajaxFunctions sid =
           (Proxy :: Proxy ())
         --   (constDyn (BaseFullUrl Http "localhost" 8081 "/server"))
           (constDyn (BasePath "/"))
-        getsurvey :<|> postsurvey :<|> postUpdate = requestFunc (Right <$> sid)
+        getsurvey :<|> postsurvey :<|> postUpdate = requestFunc sid
 
         fetchSurvey fireE = do
             res  <- getsurvey fireE

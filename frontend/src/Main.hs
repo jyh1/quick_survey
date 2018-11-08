@@ -14,14 +14,15 @@ import Request
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  inputConfig <- createOrFetch
+  (inputConfig, nameSearched) <- createOrFetch
   -- inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
-  (surveyName, submitE) <- inputSurveyName
-  let (fetchSurvey, postRes, saveSurvey) = ajaxFunctions surveyName
-  saveSurvey qLisE submitE
-  (testSurveys, _) <- getPostBuild >>= fetchSurvey
+  -- (surveyName, submitE) <- inputSurveyName
+  searchTag <- eventToParams nameSearched
+  let (fetchSurvey, postRes, saveSurvey) = ajaxFunctions searchTag
+  -- saveSurvey qLisE submitE
+  (testSurveys, _) <- fetchSurvey (() <$ nameSearched)
   let qLis =  leftmost [
                   -- (parseSurvey testQuestion) <$ buildE
                   parseSurvey <$> testSurveys
@@ -64,13 +65,14 @@ createSurvey = do
   fileInputButton
 
   
-searchSurvey :: MonadWidget t m => m ()
+searchSurvey :: MonadWidget t m => m (Event t T.Text)
 searchSurvey = divClass "field" $
     divClass "ui search" $
       divClass "ui icon input" $ do
-        textInput def
-        elClass "i" "search icon" blank
-findSurvey :: MonadWidget t m => m ()
+        searchName <- textInput def
+        (e, _) <- elClass' "i" "circular search link icon" blank
+        return (tag (current (value searchName)) (domEvent Click e))
+findSurvey :: MonadWidget t m => m (Event t T.Text)
 findSurvey = do
   divClass "ui icon header" $ do
     elClass "i" "search icon" blank
@@ -78,11 +80,11 @@ findSurvey = do
   searchSurvey
 
 
-createOrFetch :: MonadWidget t m => m (Event t T.Text)
+createOrFetch :: MonadWidget t m => m (Event t T.Text, Event t T.Text)
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column stackable center aligned grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
       loadedSurvey <- divClass "column" createSurvey
-      divClass "column" findSurvey
-      return loadedSurvey
+      surveyNameSearch <- divClass "column" findSurvey
+      return (loadedSurvey, surveyNameSearch)
