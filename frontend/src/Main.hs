@@ -73,11 +73,17 @@ searchSurvey = divClass "field" $
     divClass "ui search" $
       divClass "ui icon input" $ do
         searchName <- textInput def
-        (e, _) <- elClass' "i" "circular search link icon" blank
-        let performSearch = domEvent Click e
-            (fetch, postResponse, _) = ajaxFunctions (Right <$> value searchName)
+        let searchNameValue = T.strip <$> value searchName
+        (e, _) <- elDynClass' "i" (clickable <$> searchNameValue) blank
+        let performSearch = leftmost [domEvent Click e, keypress Enter searchName]
+            (fetch, postResponse, _) = ajaxFunctions (eitherValue <$> searchNameValue)
         (success, fail) <- fetch performSearch
         return (FetchSurvey postResponse (parseSurvey <$> success))
+    where
+      clickable "" = "circular search icon"
+      clickable _ = "circular search icon link"
+      eitherValue "" = Left "None"
+      eitherValue s = Right s
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = do
   divClass "ui icon header" $ do
