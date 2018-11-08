@@ -8,27 +8,27 @@ import qualified Data.Text as T
 import Question
 import Fileinput
 import Debug (run)
+import Types
 
 
 import Request
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  (inputConfig, nameSearched) <- createOrFetch
+  (inputConfig, searchResult) <- createOrFetch
   -- inputConfig <- loadingFile
   let qLisE = fmapMaybe jsonToQuestion inputConfig
   let parsedQs = parseSurvey <$> qLisE
   -- (surveyName, submitE) <- inputSurveyName
-  searchTag <- eventToParams nameSearched
-  let (fetchSurvey, postRes, saveSurvey) = ajaxFunctions searchTag
+  -- let (fetchSurvey, postRes, saveSurvey) = ajaxFunctions searchTag
   -- saveSurvey qLisE submitE
-  (testSurveys, _) <- fetchSurvey (() <$ nameSearched)
+  -- (testSurveys, _) <- fetchSurvey (() <$ nameSearched)
   let qLis =  leftmost [
                   -- (parseSurvey testQuestion) <$ buildE
-                  parseSurvey <$> testSurveys
-                , parsedQs
+                  -- parseSurvey <$> testSurveys
+                 survey searchResult
               ]
-  response <- renderQuestionLis (postRes (constDyn "jyh1")) qLis
+  response <- renderQuestionLis ((postAnswer searchResult) (constDyn "jyh1")) qLis
   responseHistory <- (foldDyn (:) [] response)
   display responseHistory
 
@@ -50,6 +50,9 @@ inputSurveyName = do
   return (name, submitBtn)
 
 
+data FetchSurvey t m = FetchSurvey {postAnswer :: PostResponse t m, survey :: Event t Survey}
+
+
 fileInputButton :: MonadWidget t m => m (Event t T.Text)
 fileInputButton =
   elClass "label" "ui primary button" $ do
@@ -65,14 +68,17 @@ createSurvey = do
   fileInputButton
 
   
-searchSurvey :: MonadWidget t m => m (Event t T.Text)
+searchSurvey :: MonadWidget t m => m (FetchSurvey t m)
 searchSurvey = divClass "field" $
     divClass "ui search" $
       divClass "ui icon input" $ do
         searchName <- textInput def
         (e, _) <- elClass' "i" "circular search link icon" blank
-        return (tag (current (value searchName)) (domEvent Click e))
-findSurvey :: MonadWidget t m => m (Event t T.Text)
+        let performSearch = domEvent Click e
+            (fetch, postResponse, _) = ajaxFunctions (Right <$> value searchName)
+        (success, fail) <- fetch performSearch
+        return (FetchSurvey postResponse (parseSurvey <$> success))
+findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = do
   divClass "ui icon header" $ do
     elClass "i" "search icon" blank
@@ -80,7 +86,7 @@ findSurvey = do
   searchSurvey
 
 
-createOrFetch :: MonadWidget t m => m (Event t T.Text, Event t T.Text)
+createOrFetch :: MonadWidget t m => m (Event t T.Text, (FetchSurvey t m))
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column stackable center aligned grid" $ do
     divClass "ui vertical divider" (text "Or")
