@@ -31,16 +31,19 @@ parseQuestion eid que =
     [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
   )
 
-parseSurvey :: [Question] -> Survey
+parseSurvey :: SurveyContent -> Survey
 parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
 type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 
-renderQuestionLis :: (MonadWidget t m) => PostRes t m -> Event t Survey -> m (Event t SurveyUpdate)
-renderQuestionLis postRes qLis = do
-  allUpdates <- widgetHold (return [never]) (mapM (renderQuestion postRes) <$> qLis)
-  return (switchDyn (leftmost <$> allUpdates))
+renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
+renderQuestionLis upstreamE = do
+  widgetHold (return never) (uncurry renderSurvey <$> upstreamE)
+  return ()
 
+renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
+renderSurvey postRes qLis =
+  leftmost <$> mapM (renderQuestion postRes) (parseSurvey qLis)
 
 renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)
 renderQuestion postRes elis = do

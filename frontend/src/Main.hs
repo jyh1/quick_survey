@@ -17,22 +17,23 @@ import Utilities
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  (inputConfig, searchResult) <- createOrFetch
+  createE <- createOrFetch
   -- inputConfig <- loadingFile
-  let qLisE = fmapMaybe jsonToQuestion inputConfig
-  let parsedQs = parseSurvey <$> qLisE
+  -- let qLisE = fmapMaybe jsonToQuestion inputConfig
+  -- let parsedQs = parseSurvey <$> qLisE
   -- (surveyName, submitE) <- inputSurveyName
   -- let (fetchSurvey, postRes, saveSurvey) = ajaxFunctions searchTag
   -- saveSurvey qLisE submitE
   -- (testSurveys, _) <- fetchSurvey (() <$ nameSearched)
-  let qLis =  leftmost [
+  -- let qLis =  parseSurvey <$> leftmost [
                   -- (parseSurvey testQuestion) <$ buildE
                   -- parseSurvey <$> testSurveys
-                 survey searchResult
-              ]
-  response <- renderQuestionLis ((postAnswer searchResult) (constDyn "jyh1")) qLis
-  responseHistory <- (foldDyn (:) [] response)
-  display responseHistory
+
+              -- ]
+  renderQuestionLis createE
+  -- response <- renderQuestionLis ((postAnswer searchResult) (constDyn "jyh1")) qLis
+  -- responseHistory <- (foldDyn (:) [] response)
+  -- display responseHistory
 
 headElement :: MonadWidget t m => m ()
 headElement = do
@@ -52,7 +53,7 @@ inputSurveyName = do
   return (name, submitBtn)
 
 
-data FetchSurvey t m = FetchSurvey {postAnswer :: PostResponse t m, survey :: Event t Survey}
+type FetchSurvey t m = Event t (PostRes t m, SurveyContent)
 
 
 fileInputButton :: MonadWidget t m => m (Event t T.Text)
@@ -61,12 +62,15 @@ fileInputButton =
     text "Create"
     fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
     getFileEvent fileButton
-createSurvey :: MonadWidget t m => m (Event t T.Text)
+createSurvey :: MonadWidget t m => m (FetchSurvey t m)
 createSurvey = do
   divClass "ui icon header" $ do
     elClass "i" "file alternate outline icon" blank
     text "Add New Survey"
-  fileInputButton
+  uploadContent <- fileInputButton
+  return ((\x -> (dummyPost, x)) <$> (fmapMaybe jsonToQuestion uploadContent))
+    where
+      dummyPost _ res = delay 0.1 res
 
   
 searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool)
@@ -85,7 +89,7 @@ searchSurvey = divClass "field" $
         errorStatus <- foldDyn const False 
           (mergeWith (&&) [True <$ fail, False <$ clearError])
       errorMessage <- holdDyn "None" fail
-      return (FetchSurvey postResponse (parseSurvey <$> success), errorStatus)
+      return ((\x -> (postResponse (constDyn "jyh1"), x)) <$> success, errorStatus)
     where
       clickable "" = "circular search icon"
       clickable _ = "circular search icon link"
@@ -108,11 +112,11 @@ findSurvey = do
     icon False = "search icon"
 
 
-createOrFetch :: MonadWidget t m => m (Event t T.Text, (FetchSurvey t m))
+createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column stackable center aligned grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
       loadedSurvey <- divClass "column" createSurvey
       surveyNameSearch <- divClass "column" findSurvey
-      return (loadedSurvey, surveyNameSearch)
+      return (leftmost [loadedSurvey, surveyNameSearch])
