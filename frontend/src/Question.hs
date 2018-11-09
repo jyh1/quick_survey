@@ -66,7 +66,7 @@ renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom atta
       postToServer <- postRes rId eventResponse
       -- TODO Initial value of displayAnswer
       busy <- foldDyn (+) 0 
-                (leftmost [ 1 <$ eventResponse, -1 <$ postToServer])
+                (mergeWith (+) [ 1 <$ eventResponse, -1 <$ postToServer])
       savedDyn <- holdDyn Nothing (fromResponse <$> postToServer)
   return ((\x -> (rId, x)) <$> eventResponse)
   where
