@@ -64,10 +64,10 @@ server pool sName =
                 return Success
               Just _ -> return Failed
 
-        surveyGet :: IO [Question]
+        surveyGet :: IO (Either T.Text SurveyContent)
         surveyGet = flip runSqlPersistMPool pool $ do
             mSurvey <- selectFirst [SurveyName ==. sName] []
-            return $ fromMaybe [] (surveyContent <$> entityVal <$> mSurvey)
+            return $ maybe (Left "Survey doesn't exist") Right (surveyContent <$> entityVal <$> mSurvey)
 
         saveResponse :: FieldID -> T.Text -> ElementResponse -> IO ElementResponse
         saveResponse field user res = 

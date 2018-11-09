@@ -39,7 +39,8 @@ ajaxFunctions sid =
 
         fetchSurvey fireE = do
             res  <- getsurvey fireE
-            return (fmapMaybe reqSuccess res, fmapMaybe reqFailure res)
+            let reqRes = fmapMaybe reqSuccess res
+            return (filterRight reqRes, filterLeft reqRes)
         updateFun user field eleRes = do
             let idParam = constDyn (Right field)
             contentParam <- eventToParams eleRes

@@ -64,7 +64,7 @@ instance FromJSON SavedStatus
 type SurveyAPI = 
     "survey" :> Capture "surveyid" T.Text :>
       (
-             ( Get '[JSON] SurveyContent )
+             ( Get '[JSON] (Either T.Text SurveyContent))
         :<|> ( ReqBody '[JSON] SurveyContent :> Post '[JSON] SavedStatus)
         :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
