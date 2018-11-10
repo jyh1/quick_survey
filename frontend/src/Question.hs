@@ -18,8 +18,8 @@ import qualified Data.Map as Map
 import Data.Traversable (mapAccumL) 
 
 
-import Types
 import Common
+import FrontendCommon
 
 jsonToQuestion :: T.Text -> Maybe [Question]
 jsonToQuestion = decode' . encodeUtf8 . fromStrict
@@ -34,7 +34,6 @@ parseQuestion eid que =
 parseSurvey :: SurveyContent -> Survey
 parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
-type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 
 renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
 renderQuestionLis upstreamE = do

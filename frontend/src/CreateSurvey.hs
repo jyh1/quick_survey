@@ -3,18 +3,13 @@
 module CreateSurvey(createOrFetch) where
 
 import Reflex.Dom.Core
-import qualified Data.Map as Map
 import qualified Data.Text as T
 import           Data.Monoid ((<>))
 
 import Question
 import Fileinput
-import Types
 import Request
-
-
-type FetchSurvey t m = Event t (PostRes t m, SurveyContent)
-
+import FrontendCommon
 
 fileInputButton :: MonadWidget t m => m (Event t T.Text)
 fileInputButton =

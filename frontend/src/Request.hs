@@ -14,14 +14,11 @@ import qualified Data.Text as T
 import Data.Proxy
 
 
-import Types
+import FrontendCommon
 
 eventToParams :: MonadWidget t m => Event t a -> m (Dynamic t (Either T.Text a))
 eventToParams e = holdDyn (Left "None") (Right <$> e)
 
-type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t T.Text)
-type PostResponse t m = Dynamic t T.Text -> FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
-type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
 
 ajaxFunctions :: forall t m. MonadWidget t m => Dynamic t (Either T.Text T.Text) -> 
     (

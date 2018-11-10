@@ -9,7 +9,6 @@ import           Data.Monoid ((<>))
 import Question
 import Fileinput
 import Debug (run)
-import Types
 import CreateSurvey
 
 
