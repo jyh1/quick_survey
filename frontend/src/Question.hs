@@ -41,7 +41,7 @@ renderQuestionLis upstreamE = do
   return ()
 
 renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
-renderSurvey postRes qLis =
+renderSurvey postRes qLis = divClass "ui list" $ 
   leftmost <$> mapM (renderQuestion postRes) (parseSurvey qLis)
 
 renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)

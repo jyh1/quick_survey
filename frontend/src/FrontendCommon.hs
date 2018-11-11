@@ -3,7 +3,8 @@
 
 module FrontendCommon(
     module FrontendCommon,
-    module Types
+    module Types,
+    module Common
 ) where
 
 import Data.Text (Text)
@@ -12,6 +13,7 @@ import qualified Data.Map.Strict as Map
 import           Data.Monoid ((<>))
 
 import Types
+import Common
 
 
 
