@@ -8,60 +8,34 @@ import qualified Data.Text as T
 
 import Reflex.Dom.Core hiding (Home, Submit, Reset)
 
+import FrontendCommon
 
-data Status = Active | Disabled | Normal
 
-data StepConfig = 
-  StepConfig {tab :: Tabs, status :: Status}
+isActive :: Bool -> T.Text
+isActive True = "active section"
+isActive False = "section"
 
-data StepChange = Reset [StepConfig] | Activate Tabs
-
-data Tabs = Home | Preview | Submit | Survey
-  deriving(Show, Eq)
-
-statusToClass :: Status -> T.Text
-statusToClass Active = "active section"
-statusToClass Disabled = "disabled section"
-statusToClass Normal = "section"
-
-tabName :: Tabs -> T.Text
-tabName = tshow
--- tabName Home = "Home"
--- tabName Preview = "Preview"
--- tabName Submit = "Submit"
--- tabName Survey = "Survey"
-
-tabStatus :: MonadWidget t m => Event t StepChange -> m (Dynamic t [StepConfig])
-tabStatus cE = do
-  foldDyn ($) [StepConfig Home Active] (makeChange <$> cE)
+breadCrumbEle :: MonadWidget t m => Dynamic t Page -> Dynamic t Page -> m (Event t Page)
+breadCrumbEle activePage page = do
+  (e, _) <- elDynClass' "a" activeClass (dynText (tshow <$> page))
+  return (tag (current page) (domEvent Click e))
   where
-    makeChange (Reset s) _ = s
-    makeChange (Activate tab) xs = 
-      map activate xs
-      where
-        activate (StepConfig t m) 
-          | t == tab = StepConfig t Active
-          | otherwise = StepConfig t Normal
-
-breadCrumbEle :: MonadWidget t m => Dynamic t StepConfig -> m (Event t Tabs)
-breadCrumbEle config = do
-  (e, _) <- elDynClass' "a" (statusToClass <$> stat) (dynText (tabName <$> t))
-  return (tag (current t) (domEvent Click e))
-  where
-    t = tab <$> config
-    stat = status <$> config
+    activeClass = isActive <$> (eqDyn activePage page)
 
 iconDivider :: MonadWidget t m => m ()
 iconDivider = elClass "i" "right angle icon divider" blank
 
-renderStep :: MonadWidget t m => Dynamic t StepConfig -> m (Event t Tabs)
-renderStep config = do
+renderStep :: MonadWidget t m => Dynamic t Page -> Dynamic t Page -> m (Event t Page)
+renderStep activePage page = do
   iconDivider
-  breadCrumbEle config
+  breadCrumbEle activePage page
 
-breadCrumb :: MonadWidget t m => Dynamic t [StepConfig] -> m (Event t Tabs)
-breadCrumb allTab = do
-  divClass "ui huge breadcrumb" $ do
-    homeClick <- breadCrumbEle (head <$> allTab)
-    otherClick <- simpleList (tail <$> allTab) renderStep
-    return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])
+breadCrumb :: MonadWidget t m => Dynamic t PageStatus -> m (Event t Page)
+breadCrumb pageStat =
+    divClass "ui huge breadcrumb" $ do
+        homeClick <- breadCrumbEle focus (head <$> allpages)
+        otherClick <- simpleList (tail <$> allpages) (renderStep focus)
+        return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])
+    where
+        focus = activated <$> pageStat
+        allpages = pages <$> pageStat

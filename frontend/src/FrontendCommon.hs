@@ -29,6 +29,18 @@ type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t Text)
 type PostResponse t m = Dynamic t Text -> PostRes t m
 type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
 
+-- Page types
+data Page = Home | Preview | Submit | Survey
+    deriving(Show, Eq)
+data PageStatus = PageStatus {pages :: [Page], activated :: Page}
+
+
+eqDyn :: (Eq a, Reflex t) => Dynamic t a -> Dynamic t a -> Dynamic t Bool
+eqDyn = zipDynWith (==)
+
+makePageStatus :: Reflex t => Dynamic t [Page] -> Dynamic t Page -> Dynamic t PageStatus
+makePageStatus = zipDynWith PageStatus
+
 toggleHide :: MonadWidget t m => Dynamic t Bool -> Text -> Dynamic t (Map.Map Text Text) -> m a -> m a
 toggleHide hide tag attrs = 
     elDynAttr tag (zipDynWith (Map.insertWith (<>) "style") (hideStyle <$> hide) attrs)

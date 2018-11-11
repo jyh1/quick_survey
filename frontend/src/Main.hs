@@ -11,6 +11,7 @@ import Fileinput
 import Debug (run)
 import CreateSurvey
 import Tabs
+import FrontendCommon
 
 
 
@@ -18,15 +19,12 @@ main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
   post <- getPostBuild
   rec
-    tabList <- tabStatus updateE
-    clickE <- breadCrumb tabList
-    let updateE = leftmost [Reset [StepConfig Home Normal, StepConfig Preview Normal, StepConfig Submit Active] <$ post, 
-                            Activate <$> clickE]
+    activePage <- foldDyn const Preview clickE
+    let pageStatus = makePageStatus (constDyn [Home, Preview, Submit]) activePage
+    clickE <- breadCrumb pageStatus
   createE <- createOrFetch
   renderQuestionLis createE
-  -- response <- renderQuestionLis ((postAnswer searchResult) (constDyn "jyh1")) qLis
-  -- responseHistory <- (foldDyn (:) [] response)
-  -- display responseHistory
+
 
 headElement :: MonadWidget t m => m ()
 headElement = do
@@ -40,4 +38,3 @@ headElement = do
       ]) $ return ()
 
 
-    
