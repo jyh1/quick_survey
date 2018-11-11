@@ -1,6 +1,6 @@
 {-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings, ScopedTypeVariables #-}
 
-import Reflex.Dom.Core hiding (Home, Submit)
+import Reflex.Dom.Core hiding (Home, Submit, Reset)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import           Data.Monoid ((<>))
@@ -17,7 +17,12 @@ import FrontendCommon(tshow)
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  breadCrumb (constDyn [StepConfig Preview Normal, StepConfig Submit Active])
+  post <- getPostBuild
+  rec
+    tabList <- tabStatus updateE
+    clickE <- breadCrumb tabList
+    let updateE = leftmost [Reset [StepConfig Preview Normal, StepConfig Submit Active] <$ post, 
+                            Activate <$> clickE]
   createE <- createOrFetch
   renderQuestionLis createE
   -- response <- renderQuestionLis ((postAnswer searchResult) (constDyn "jyh1")) qLis
@@ -36,13 +41,14 @@ headElement = do
       ]) $ return ()
 
 data Status = Active | Disabled | Normal
+
 data StepConfig = 
   StepConfig {tab :: Tabs, status :: Status}
 
 data StepChange = Reset [StepConfig] | Activate Tabs
 
 data Tabs = Home | Preview | Submit | Survey
-  deriving(Show)
+  deriving(Show, Eq)
 
 statusToClass :: Status -> T.Text
 statusToClass Active = "active section"
@@ -55,6 +61,18 @@ tabName = tshow
 -- tabName Preview = "Preview"
 -- tabName Submit = "Submit"
 -- tabName Survey = "Survey"
+
+tabStatus :: MonadWidget t m => Event t StepChange -> m (Dynamic t [StepConfig])
+tabStatus cE = do
+  foldDyn ($) [] (makeChange <$> cE)
+  where
+    makeChange (Reset s) _ = s
+    makeChange (Activate tab) xs = 
+      map activate xs
+      where
+        activate (StepConfig t m) 
+          | t == tab = StepConfig t Active
+          | otherwise = StepConfig t Normal
 
 breadCrumbEle :: MonadWidget t m => Dynamic t StepConfig -> m (Event t Tabs)
 breadCrumbEle config = do
@@ -79,4 +97,3 @@ breadCrumb allTab = do
     otherClick <- simpleList allTab renderStep
     return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])
     
-
