@@ -21,7 +21,7 @@ main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
   rec
     tabList <- tabStatus updateE
     clickE <- breadCrumb tabList
-    let updateE = leftmost [Reset [StepConfig Preview Normal, StepConfig Submit Active] <$ post, 
+    let updateE = leftmost [Reset [StepConfig Home Normal, StepConfig Preview Normal, StepConfig Submit Active] <$ post, 
                             Activate <$> clickE]
   createE <- createOrFetch
   renderQuestionLis createE
@@ -64,7 +64,7 @@ tabName = tshow
 
 tabStatus :: MonadWidget t m => Event t StepChange -> m (Dynamic t [StepConfig])
 tabStatus cE = do
-  foldDyn ($) [] (makeChange <$> cE)
+  foldDyn ($) [StepConfig Home Active] (makeChange <$> cE)
   where
     makeChange (Reset s) _ = s
     makeChange (Activate tab) xs = 
@@ -92,8 +92,8 @@ renderStep config = do
 
 breadCrumb :: MonadWidget t m => Dynamic t [StepConfig] -> m (Event t Tabs)
 breadCrumb allTab = do
-  divClass "ui breadcrumb" $ do
-    homeClick <- breadCrumbEle (constDyn (StepConfig Home Normal))
-    otherClick <- simpleList allTab renderStep
+  divClass "ui huge breadcrumb" $ do
+    homeClick <- breadCrumbEle (head <$> allTab)
+    otherClick <- simpleList (tail <$> allTab) renderStep
     return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])
     
