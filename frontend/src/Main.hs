@@ -19,10 +19,11 @@ main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
   post <- getPostBuild
   rec
-    activePage <- foldDyn const Home clickE
+    activePage <- foldDyn const Home switchPageE
     let pageStatus = makePageStatus (constDyn [Home, Preview, Submit]) activePage
     clickE <- breadCrumb pageStatus
-  createE <- displayPage activePage Home createOrFetch
+    createE <- displayPage activePage Home createOrFetch
+    let switchPageE = leftmost [Preview <$ createE, clickE]
   (displayPage activePage Preview renderQuestionLis) createE
 
 
