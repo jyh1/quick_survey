@@ -32,7 +32,7 @@ renderStep activePage page = do
 
 breadCrumb :: MonadWidget t m => Dynamic t PageStatus -> m (Event t Page)
 breadCrumb pageStat =
-    divClass "ui huge breadcrumb" $ do
+    divClass "ui big breadcrumb" $ do
         homeClick <- breadCrumbEle focus (head <$> allpages)
         otherClick <- simpleList (tail <$> allpages) (renderStep focus)
         return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])

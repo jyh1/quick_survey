@@ -46,8 +46,8 @@ searchSurvey = divClass "field" $
       errorMessage <- holdDyn "None" fail
       return ((\x -> (postResponse (constDyn "jyh1"), x)) <$> success, errorStatus)
     where
-      clickable "" = "circular search icon"
-      clickable _ = "circular search icon link"
+      clickable "" = "inverted circular search icon"
+      clickable _ = "inverted circular search icon link"
       eitherValue "" = Left "None"
       eitherValue s = Right s
       inputErrSty b = "ui icon input" <> if b then " error" else ""
