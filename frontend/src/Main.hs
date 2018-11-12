@@ -6,25 +6,14 @@ import qualified Data.Text as T
 import           Data.Monoid ((<>))
 
 
-import Question
-import Fileinput
-import Debug (run)
-import CreateSurvey
-import Tabs
-import FrontendCommon
+import Debug
+import Pages
 
 
 
 main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
-  post <- getPostBuild
-  rec
-    activePage <- foldDyn const Home switchPageE
-    let pageStatus = makePageStatus (constDyn [Home, Preview, Submit]) activePage
-    clickE <- breadCrumb pageStatus
-    createE <- displayPage activePage Home createOrFetch
-    let switchPageE = leftmost [Preview <$ createE, clickE]
-  (displayPage activePage Preview renderQuestionLis) createE
+  allPages
 
 
 headElement :: MonadWidget t m => m ()
@@ -37,8 +26,3 @@ headElement = do
         , ("type", "text/css")
         , ("href", link)
       ]) $ return ()
-
-
-displayPage :: Reflex t => Dynamic t Page -> Page -> (Dynamic t Bool -> a) -> a
-displayPage focus current f =
-  f ((== current) <$> focus)
