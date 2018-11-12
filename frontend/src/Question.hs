@@ -35,13 +35,13 @@ parseSurvey :: SurveyContent -> Survey
 parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 
 
-renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
-renderQuestionLis upstreamE = do
-  widgetHold (return never) (uncurry renderSurvey <$> upstreamE)
+renderQuestionLis :: (MonadWidget t m) => Dynamic t Bool -> Event t (PostRes t m, SurveyContent) -> m ()
+renderQuestionLis hide upstreamE = do
+  widgetHold (return never) (uncurry (renderSurvey hide) <$> upstreamE)
   return ()
 
-renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
-renderSurvey postRes qLis = divClass "ui list" $ 
+renderSurvey :: (MonadWidget t m) => Dynamic t Bool -> PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
+renderSurvey hide postRes qLis = hideDynDivClass hide "ui list" $ 
   leftmost <$> mapM (renderQuestion postRes) (parseSurvey qLis)
 
 renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)

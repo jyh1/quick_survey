@@ -45,7 +45,7 @@ toggleHide :: MonadWidget t m => Dynamic t Bool -> Text -> Dynamic t (Map.Map Te
 toggleHide hide tag attrs = 
     elDynAttr tag (zipDynWith (Map.insertWith (<>) "style") (hideStyle <$> hide) attrs)
         where 
-            hideStyle False = ";visibility:hidden"
+            hideStyle False = ";display:none"
             hideStyle True = ""
 
 hideDynDivClass :: MonadWidget t m => Dynamic t Bool -> Dynamic t Text -> m a -> m a

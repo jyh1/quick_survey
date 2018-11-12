@@ -19,11 +19,11 @@ main :: IO ()
 main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
   post <- getPostBuild
   rec
-    activePage <- foldDyn const Preview clickE
+    activePage <- foldDyn const Home clickE
     let pageStatus = makePageStatus (constDyn [Home, Preview, Submit]) activePage
     clickE <- breadCrumb pageStatus
-  createE <- createOrFetch
-  renderQuestionLis createE
+  createE <- displayPage activePage Home createOrFetch
+  (displayPage activePage Preview renderQuestionLis) createE
 
 
 headElement :: MonadWidget t m => m ()
@@ -38,3 +38,6 @@ headElement = do
       ]) $ return ()
 
 
+displayPage :: Reflex t => Dynamic t Page -> Page -> (Dynamic t Bool -> a) -> a
+displayPage focus current f =
+  f ((== current) <$> focus)

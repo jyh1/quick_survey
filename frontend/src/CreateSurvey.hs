@@ -67,8 +67,8 @@ findSurvey = do
     icon False = "search icon"
 
 
-createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
-createOrFetch = divClass "ui placeholder segment" $ 
+createOrFetch :: MonadWidget t m => Dynamic t Bool -> m (FetchSurvey t m)
+createOrFetch hide = hideDynDivClass hide "ui placeholder segment" $ 
   divClass "ui two column stackable center aligned grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
