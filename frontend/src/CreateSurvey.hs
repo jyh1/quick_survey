@@ -101,7 +101,7 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
     message False = "Fill a Survey"
     message True = "Survey Not Found"
     icon True = "exclamation circle icon"
-    icon False = "pencil alternate icon"
+    icon False = "edit alternate icon"
 -- fillSurvey :: MonadWidget t m => m (FetchSurvey t m)
 -- fillSurvey = do
 --   divClass "two fields" $ do

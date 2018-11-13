@@ -12,8 +12,8 @@ import FrontendCommon
 
 
 isActive :: Bool -> T.Text
-isActive True = "active section"
-isActive False = "section"
+isActive True = "active item"
+isActive False = "item"
 
 breadCrumbEle :: MonadWidget t m => Dynamic t Page -> Dynamic t Page -> m (Event t Page)
 breadCrumbEle activePage page = do
@@ -22,20 +22,11 @@ breadCrumbEle activePage page = do
   where
     activeClass = isActive <$> (eqDyn activePage page)
 
-iconDivider :: MonadWidget t m => m ()
-iconDivider = elClass "i" "right angle icon divider" blank
-
-renderStep :: MonadWidget t m => Dynamic t Page -> Dynamic t Page -> m (Event t Page)
-renderStep activePage page = do
-  iconDivider
-  breadCrumbEle activePage page
-
 breadCrumb :: MonadWidget t m => Dynamic t PageStatus -> m (Event t Page)
 breadCrumb pageStat =
-    divClass "ui big breadcrumb" $ do
-        homeClick <- breadCrumbEle focus (head <$> allpages)
-        otherClick <- simpleList (tail <$> allpages) (renderStep focus)
-        return (leftmost [homeClick, switchDyn (leftmost <$> otherClick)])
+    divClass "ui secondary pointing menu" $ do
+        otherClick <- simpleList allpages (breadCrumbEle focus)
+        return (switchDyn (leftmost <$> otherClick))
     where
         focus = activated <$> pageStat
         allpages = pages <$> pageStat

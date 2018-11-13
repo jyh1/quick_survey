@@ -19,7 +19,7 @@ main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
 headElement :: MonadWidget t m => m ()
 headElement = do
   el "title" $ text "Survey"
-  styleSheet "static/semantic.css"
+  styleSheet "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
   where
     styleSheet link = elAttr "link" (Map.fromList [
           ("rel", "stylesheet")
