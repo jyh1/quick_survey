@@ -26,7 +26,7 @@ type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementRespo
 
 -- Types of request functions
 type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t Text)
-type PostResponse t m = Dynamic t Text -> PostRes t m
+type PostResponse t m = Dynamic t (Either Text Text) -> PostRes t m
 type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
 
 -- Page types

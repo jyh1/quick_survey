@@ -5,6 +5,7 @@ module CreateSurvey(createOrFetch) where
 import Reflex.Dom.Core
 import qualified Data.Text as T
 import           Data.Monoid ((<>))
+import Data.Maybe (isJust)
 
 import Question
 import Fileinput
@@ -30,7 +31,7 @@ createSurvey = do
 
 
 inputField :: MonadWidget t m => 
-  T.Text -> T.Text -> Dynamic t Bool -> m (Dynamic t T.Text, Event t (), Event t ())
+  T.Text -> T.Text -> Dynamic t Bool -> m (Dynamic t (Maybe T.Text), Event t (), Event t ())
 inputField label icon errorStatus = elDynClass "div" (fieldError <$> errorStatus) $ do
   el "label" (text label)
   divClass "ui left icon input" $ do
@@ -38,37 +39,56 @@ inputField label icon errorStatus = elDynClass "div" (fieldError <$> errorStatus
     let searchNameValue = T.strip <$> value searchName 
     (e, _) <- elClass' "i" (icon <> " icon") blank
     let performSearch = keypress Enter searchName
-    return (searchNameValue, () <$ _textInput_input searchName, performSearch)
+    return (trimInput <$> searchNameValue, () <$ _textInput_input searchName, performSearch)
   where
-    inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: "Survey Name"))
+    inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: label))
     fieldError b = "field" <> if b then " error" else ""
+    trimInput b = 
+      let trimed = T.strip b in
+        if T.null trimed then Nothing else Just trimed
 
-surveyName, userName :: MonadWidget t m => Dynamic t Bool -> m (Dynamic t T.Text, Event t (), Event t ())  
+surveyName, userName :: MonadWidget t m => Dynamic t Bool -> m (Dynamic t (Maybe T.Text), Event t (), Event t ())  
 surveyName = inputField "Survey Name" "search"
 userName = inputField "Your Name" "user"
 searchButton :: MonadWidget t m => Dynamic t Bool -> m (Event t ())  
 searchButton active = divClass "field" $ do
-  (e, _) <- elClass' "div" "ui blue submit button" $ do
+  (e, _) <- elDynClass' "div" (dynDisable <$> active) $ do
     text "Search"
   return (domEvent Click e)
-  
+  where 
+    dynDisable b = "ui blue submit button" <> if b then "" else " disabled"
 
+-- User and Survey
+searchInfo :: MonadWidget t m => Dynamic t Bool -> m (Event t (), Event t (T.Text, T.Text))
+searchInfo errorStatus = do
+  (searchNameValue, onSurveyInput, onSurveyEnter) <- surveyName errorStatus
+  (userNameValue, onUserInput, onUserEnter) <- userName (constDyn False)
+  let surveyAndUser = zipDynWith mergeInput searchNameValue userNameValue
+  submit <- searchButton (isJust <$> surveyAndUser)
+  let onSearch = leftmost [onUserEnter, onSurveyEnter, submit]
+      onInput = onSurveyInput
+  return (onInput, tagMaybe (current surveyAndUser) onSearch)
+  where
+    mergeInput justA justB = do
+      a <- justA
+      b <- justB
+      return (a, b)
+
+  
 searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool)
 searchSurvey = do
       rec
-        (searchNameValue, onInput, performSearch) <- surveyName errorStatus
-        userName errorStatus
-        searchButton errorStatus
-        let (fetch, postResponse, _) = ajaxFunctions (eitherValue <$> searchNameValue)
-        (success, fail) <- fetch performSearch
+        (onInput, onSearch) <- searchInfo errorStatus
+        dynSurveyName <- holdDyn (Left "None") ((Right . fst) <$> onSearch)
+        let (fetch, postResponse, _) = ajaxFunctions dynSurveyName
+        (success, fail) <- fetch (() <$ onSearch)
         let clearError = leftmost [() <$ success, onInput]
         errorStatus <- foldDyn const False 
           (mergeWith (&&) [True <$ fail, False <$ clearError])
+      currentUser <- holdDyn (Left "None") ((Right . snd) <$> onSearch)
       errorMessage <- holdDyn "None" fail
-      return ((\x -> (postResponse (constDyn "jyh1"), x)) <$> success, errorStatus)
-    where
-      eitherValue "" = Left "None"
-      eitherValue s = Right s
+      return ((\x -> (postResponse currentUser, x)) <$> success, errorStatus)
+
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ divClass "field" $ do
   rec

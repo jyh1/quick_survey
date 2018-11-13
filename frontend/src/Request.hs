@@ -41,7 +41,7 @@ ajaxFunctions sid =
         updateFun user field eleRes = do
             let idParam = constDyn (Right field)
             contentParam <- eventToParams eleRes
-            postToServer <- postUpdate idParam (Right <$> user) contentParam (() <$ eleRes)
+            postToServer <- postUpdate idParam user contentParam (() <$ eleRes)
             return (fmapMaybe reqSuccess postToServer)
         saveSurvey sCont fireE = do
             surveyParam <- eventToParams sCont
