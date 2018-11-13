@@ -41,7 +41,7 @@ renderQuestionLis hide upstreamE = do
   return ()
 
 renderSurvey :: (MonadWidget t m) => Dynamic t Bool -> PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
-renderSurvey hide postRes qLis = hideDynDivClass hide "ui list" $ 
+renderSurvey hide postRes qLis = hideDynDivClass hide "ui form" $
   leftmost <$> mapM (renderQuestion postRes) (parseSurvey qLis)
 
 renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)
