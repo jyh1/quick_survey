@@ -19,21 +19,29 @@ import Common
 
 -- Types
 
--- The type returned by creation of survey
+-- The type returned by survey search
 type FetchSurvey t m = Event t (PostRes t m, SurveyContent)
+-- Survey creation
+type CreateSurvey t m = (FetchSurvey t m, PostSurvey t m)
 -- Rendering Question
 type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 
 -- Types of request functions
 type GetSurvey t m = Event t () -> m (Event t SurveyContent, Event t Text)
 type PostResponse t m = Dynamic t (Either Text Text) -> PostRes t m
-type PostSurvey t m = Event t SurveyContent -> Event t () -> m (Event t SavedStatus)
+type PostSurvey t m = Dynamic t (Either Text SurveyContent) -> Event t () -> m (Event t (), Event t ())
 
 -- Page types
 data Page = Home | Preview | Submit | Survey
     deriving(Show, Eq)
 data PageStatus = PageStatus {pages :: [Page], activated :: Page}
 
+divDynClass :: MonadWidget t m => Dynamic t Text -> m a -> m a
+divDynClass = elDynClass "div" 
+
+andMerge, orMerge :: Reflex t => [Event t Bool] -> Event t Bool
+andMerge = mergeWith (&&)
+orMerge = mergeWith (||)
 
 eqDyn :: (Eq a, Reflex t) => Dynamic t a -> Dynamic t a -> Dynamic t Bool
 eqDyn = zipDynWith (==)

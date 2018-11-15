@@ -44,9 +44,9 @@ ajaxFunctions sid =
             postToServer <- postUpdate idParam user contentParam (() <$ eleRes)
             return (fmapMaybe reqSuccess postToServer)
         saveSurvey sCont fireE = do
-            surveyParam <- eventToParams sCont
-            savedEvent <- postsurvey surveyParam fireE
-            return (fmapMaybe reqSuccess savedEvent)
+            savedEvent <- postsurvey sCont fireE
+            let rE = fmapMaybe reqSuccess savedEvent
+            return (() <$ ffilter (== Success) rE, () <$ ffilter (== Failed) rE)
     in
         (fetchSurvey, updateFun, saveSurvey)
 
