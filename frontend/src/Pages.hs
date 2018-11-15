@@ -21,7 +21,11 @@ homePage active = do
 
 previewPage :: MonadWidget t m => Dynamic t Page -> FetchSurvey t m -> m ()
 previewPage active createE =
-  (displayPage active Preview renderQuestionLis) createE
+  displayPage active Preview (renderQuestionLis createE)
+
+submitPage :: MonadWidget t m => Dynamic t Page -> Event t SurveyContent -> m ()
+submitPage active surveyE = 
+  displayPage active Submit (submitForm surveyE)
 
 allPages :: MonadWidget t m => m ()
 allPages = do
@@ -31,7 +35,7 @@ allPages = do
     navClick <- fmap (clickActive <$>) (breadCrumb pageStatus)
     (newStatus, createE) <- homePage curPage
     let surCreate = const <$> newStatus
-  displayPage curPage Submit submitForm (snd <$> createE)
+  submitPage curPage (snd <$> createE)
   previewPage curPage createE
 
 initialPage :: PageStatus
@@ -40,6 +44,11 @@ initialPage = PageStatus [Home] Home
 clickActive :: Page -> PageStatus -> PageStatus
 clickActive act (PageStatus ps _) = PageStatus ps act
 
-displayPage :: Reflex t => Dynamic t Page -> Page -> (Dynamic t Bool -> a) -> a
-displayPage focus current f =
-  f ((== current) <$> focus)
+displayPage :: MonadWidget t m => Dynamic t Page -> Page -> m a -> m a
+displayPage focus current w =
+  divDynClass tabClass w
+  where
+    getTab foc
+      | foc == current = "ui active tab"
+      | otherwise = "ui tab"
+    tabClass = getTab <$> focus

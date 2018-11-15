@@ -109,8 +109,8 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
 --     findSurvey
   
 
-createOrFetch :: MonadWidget t m => Dynamic t Bool -> m (FetchSurvey t m)
-createOrFetch hide = hideDynDivClass hide "ui placeholder segment" $ 
+createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
+createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column very relaxed stackable grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do

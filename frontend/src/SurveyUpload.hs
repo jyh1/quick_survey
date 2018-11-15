@@ -73,8 +73,6 @@ formWithMsgs survey = do
     boolClass _ False = ""
     formClass s f = "ui form " <> (boolClass "success" s) <> (boolClass "error" f)
 
-submitForm :: MonadWidget t m => Dynamic t Bool -> Event t SurveyContent -> m ()
-submitForm hide survey = 
-  hideDynDivClass hide "ui tab" $ do
-    widgetHold blank (formWithMsgs <$> survey)
-    return ()
+submitForm :: MonadWidget t m => Event t SurveyContent -> m ()
+submitForm survey = 
+    widgetHold_ blank (formWithMsgs <$> survey)

@@ -56,6 +56,6 @@ toggleHide hide tag attrs =
             hideStyle False = ";display:none"
             hideStyle True = ""
 
-hideDynDivClass :: MonadWidget t m => Dynamic t Bool -> Dynamic t Text -> m a -> m a
-hideDynDivClass hide cls = 
-    toggleHide hide "div" (("class" =:) <$> cls)
+-- hideDynDivClass :: MonadWidget t m => Dynamic t Bool -> Dynamic t Text -> m a -> m a
+-- hideDynDivClass hide cls = 
+--     toggleHide hide "div" (("class" =:) <$> cls)
