@@ -20,10 +20,12 @@ fileInputButton =
     getFileEvent fileButton
 createSurvey :: MonadWidget t m => m (FetchSurvey t m)
 createSurvey = do
-  divClass "ui icon header" $ do
-    elClass "i" "file alternate outline icon" blank
-    text "Add a Survey"
-  uploadContent <- fileInputButton
+  rec
+    divClass "ui icon header" $ do
+      elDynClass "i" fileIcon blank
+      text "Add a Survey"
+    uploadContent <- fileInputButton
+    fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
   return ((\x -> (dummyPost, x)) <$> (fmapMaybe jsonToQuestion uploadContent))
     where
       dummyPost _ res = return res
