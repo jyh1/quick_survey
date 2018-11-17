@@ -8,6 +8,7 @@ module FrontendCommon(
 ) where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import Reflex.Dom.Core
 import qualified Data.Map.Strict as Map
 import           Data.Monoid ((<>))
@@ -55,6 +56,16 @@ toggleHide hide tag attrs =
         where 
             hideStyle False = ";display:none"
             hideStyle True = ""
+
+surveyNameInput :: MonadWidget t m => Text -> m (Dynamic t (Maybe Text), Event t (), TextInput t)
+surveyNameInput placeholder = do
+    textIn <- textInput (def & attributes .~ inputAttribute)
+    return (trimInput <$> (value textIn), () <$ (_textInput_input textIn), textIn)
+    where
+        inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: placeholder))
+        trimInput b = 
+          let trimed = T.strip b in
+            if T.null trimed then Nothing else Just trimed
 
 -- hideDynDivClass :: MonadWidget t m => Dynamic t Bool -> Dynamic t Text -> m a -> m a
 -- hideDynDivClass hide cls = 

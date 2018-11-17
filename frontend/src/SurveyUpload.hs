@@ -21,17 +21,10 @@ surveyNameForm :: MonadWidget t m => Dynamic t Bool -> m (Event t T.Text)
 surveyNameForm err = 
   divClass "field" $ do
     el "label" (text "Survey Name")
-    sName <- divClass "field" $ 
-      textInput (def & attributes .~ inputAttribute)
-    let savedName = trimInput <$> (value sName)
+    (savedName, _, _) <- divClass "field" $ (surveyNameInput "Survey Name")
     (e, _) <- elClass' "div" "ui button" (text "Upload Survey")
     let uploadEvent = tagMaybe (current savedName) (domEvent Click e)
     return uploadEvent
-  where
-    inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: "Survey Name"))
-    trimInput b = 
-      let trimed = T.strip b in
-        if T.null trimed then Nothing else Just trimed
 
 successMsg, errorMsg :: MonadWidget t m => Dynamic t T.Text -> m ()
 successMsg name = divClass "ui success message" $ do

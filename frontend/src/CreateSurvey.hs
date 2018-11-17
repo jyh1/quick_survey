@@ -37,17 +37,12 @@ inputField :: MonadWidget t m =>
 inputField label icon errorStatus = elDynClass "div" (fieldError <$> errorStatus) $ do
   el "label" (text label)
   divClass "ui left icon input" $ do
-    searchName <- textInput (def & attributes .~ inputAttribute)
-    let searchNameValue = T.strip <$> value searchName 
+    (searchNameValue, onType, searchName) <- surveyNameInput label
     (e, _) <- elClass' "i" (icon <> " icon") blank
     let performSearch = keypress Enter searchName
-    return (trimInput <$> searchNameValue, () <$ _textInput_input searchName, performSearch)
+    return (searchNameValue, onType, performSearch)
   where
-    inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: label))
     fieldError b = "field" <> if b then " error" else ""
-    trimInput b = 
-      let trimed = T.strip b in
-        if T.null trimed then Nothing else Just trimed
 
 surveyName, userName :: MonadWidget t m => Dynamic t Bool -> m (Dynamic t (Maybe T.Text), Event t (), Event t ())  
 surveyName = inputField "Survey Name" "search"
@@ -104,11 +99,6 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
     message True = "Survey Not Found"
     icon True = "exclamation circle icon"
     icon False = "edit alternate icon"
--- fillSurvey :: MonadWidget t m => m (FetchSurvey t m)
--- fillSurvey = do
---   divClass "two fields" $ do
---     findSurvey
---     findSurvey
   
 
 createOrFetch :: MonadWidget t m => m (FetchSurvey t m)

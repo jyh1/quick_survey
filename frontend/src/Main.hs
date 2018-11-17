@@ -2,9 +2,6 @@
 
 import Reflex.Dom.Core hiding (Home, Submit, Reset)
 import qualified Data.Map as Map
-import qualified Data.Text as T
-import           Data.Monoid ((<>))
-
 
 import Debug
 import Pages
