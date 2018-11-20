@@ -11,7 +11,9 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core
 import qualified Data.Map.Strict as Map
+import Control.Monad.State
 import           Data.Monoid ((<>))
+-- import Control.Lens
 
 import Types
 import Common
@@ -19,6 +21,23 @@ import Common
 
 
 -- Types
+
+
+data Form = 
+    RadioGroup {radioTitle :: T.Text, radioOpts :: [T.Text]}
+  | Title {titleTitle :: T.Text}
+  | List [Form]
+  deriving (Show, Eq)
+
+-- type ElementWithID = WithID ElementID QuestionElement
+-- type ParsedQuestion = ElementWithID
+type Survey = Form
+
+
+data FormState t m = FormState {post :: PostRes t m, counter :: Int}
+
+type RenderElement t m a = StateT (FormState t m) m a
+type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
 
 -- The type returned by survey search
 type FetchSurvey t m = Event t (PostRes t m, SurveyContent)

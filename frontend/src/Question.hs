@@ -16,6 +16,7 @@ import           Data.Maybe                 (fromMaybe)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
 import Data.Traversable (mapAccumL) 
+import Control.Monad.State
 
 
 import Common
@@ -25,14 +26,21 @@ jsonToQuestion :: T.Text -> Maybe [Question]
 jsonToQuestion = decode' . encodeUtf8 . fromStrict
 
 -- return next available id and parsed question
-parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
-parseQuestion eid que = 
-  (succ $ succ eid,
-    [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
-  )
+-- parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
+-- parseQuestion eid que = 
+--   (succ $ succ eid,
+--     [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
+--   )
 
-parseSurvey :: SurveyContent -> Survey
-parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
+parseSurvey :: SurveyContent -> Form
+-- parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
+parseSurvey _ = List [
+  Title "Question 1",
+  List [RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
+  Title "Question 2",
+  RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
+  , RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
+  ]
 
 
 renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
@@ -42,22 +50,46 @@ renderQuestionLis upstreamE = do
 
 renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
 renderSurvey postRes qLis = divClass "ui form" $
-  leftmost <$> mapM (renderQuestion postRes) (parseSurvey qLis)
+  evalStateT (renderForm (parseSurvey qLis)) (FormState postRes 0)
 
-renderQuestion :: (MonadWidget t m) => PostRes t m -> ParsedQuestion -> m (Event t SurveyUpdate)
-renderQuestion postRes elis = do
-  elementRes <- mapM (renderElement postRes) elis
-  return (leftmost elementRes)
+bumpCounter :: Monad m => RenderElement t m ()
+bumpCounter = modify bump
+  where bump (FormState x c) = FormState x (c + 1)
 
+renderForm :: (MonadWidget t m) => Form -> RenderForm t m
+renderForm form = do
+  bumpCounter
+  renderElement form
+  -- elementRes <- mapM (renderElement postRes) elis
+  -- return (leftmost elementRes)
+-- renderForm = undefined
 
-renderElement :: (MonadWidget t m) => PostRes t m -> ElementWithID -> m (Event t SurveyUpdate)
-renderElement _ (_, Title title) = divClass "ui top attached segment" $ do
-  text title
+-- renderSingle :: (MonadWidget t m) => PostRes t m -> ElementWithID -> m (Event t SurveyUpdate)
+-- renderSingle postRes ele = divClass "ui form" (renderElement postRes ele)
+
+renderElement :: (MonadWidget t m) => Form -> RenderForm t m
+renderElement (List elis) = do
+  fs <- get
+  (newState, response) <- lift $ do
+    (es, newFs) <- divClass "ui segments" $ runStateT (mapM renderForm elis) fs
+    return (newFs, leftmost es)
+  put newState
+  return response  
+renderElement atomic = do
+  FormState postRes count <- get
+  lift (divClass "ui segment" (renderElementWith postRes count atomic))
+-- renderElement (RadioGroup radioT radioO)
+-- renderElement _ (_, Title title) = divClass "ui segment" $ divClass "ui segments" $ do
+  -- text title
+  -- return never
+
+renderElementWith :: (MonadWidget t m) => PostRes t m -> Int -> Form -> m (Event t SurveyUpdate)
+renderElementWith _ _ (Title title) = do
+  divClass "ui header" (text title)
   return never
-
-renderElement postRes (rId, RadioGroup radioT radioO) = divClass "ui bottom attached segment field form" $ do
+renderElementWith postRes rId (RadioGroup radioT radioO) = do
   rec el "label" $ do
-        text (fromMaybe "" radioT)
+        text radioT
         displayAnswer radioO savedDyn busy
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
       eventSel <- updated <$> holdUniqDyn (_hwidget_value answer)

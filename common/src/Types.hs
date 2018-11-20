@@ -23,21 +23,11 @@ instance FromJSON Question
 
 type SurveyContent = [Question]
 
-data QuestionElement = 
-      RadioGroup {radioTitle :: Maybe T.Text, radioOpts :: [T.Text]}
-    | Title {titleTitle :: T.Text}
-    deriving (Show, Eq)
-
 type WithID key ele = (key, ele)
 
 getId = fst
 getEle = snd
 
-
-type ElementWithID = WithID ElementID QuestionElement
-type ParsedQuestion = [ElementWithID]
-
-type Survey = [ParsedQuestion]
 
 data ElementResponse = 
       Clicked ElementID
