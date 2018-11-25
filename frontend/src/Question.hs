@@ -36,7 +36,8 @@ parseSurvey :: SurveyContent -> Form
 -- parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
 parseSurvey _ = List [
   Title "Question 1",
-  List [RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
+  RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],
+  List [Plain "Philip Thomas will be an assistant professor at the University of Massachusetts Amherst starting in September. Before that,", RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
   Title "Question 2",
   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
   , RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
@@ -77,7 +78,10 @@ renderElement (List elis) = do
   return response  
 renderElement atomic = do
   FormState postRes count <- get
-  lift (divClass "ui segment" (renderElementWith postRes count atomic))
+  lift (elAttr "div" segmentStyle (renderElementWith postRes count atomic))
+  where
+    segmentStyle = "class" =: "ui segment" <> "style" =: "border-top: none;"
+    -- segmentStyle = "class" =: "ui segment"
 -- renderElement (RadioGroup radioT radioO)
 -- renderElement _ (_, Title title) = divClass "ui segment" $ divClass "ui segments" $ do
   -- text title
@@ -85,10 +89,13 @@ renderElement atomic = do
 
 renderElementWith :: (MonadWidget t m) => PostRes t m -> Int -> Form -> m (Event t SurveyUpdate)
 renderElementWith _ _ (Title title) = do
-  divClass "ui header" (text title)
+  divClass "ui dividing header" (text title)
+  return never
+renderElementWith _ _ (Plain t) = do
+  el "p" (text t)
   return never
 renderElementWith postRes rId (RadioGroup radioT radioO) = do
-  rec el "label" $ do
+  rec divClass "field" $ el "label" $ do
         text radioT
         displayAnswer radioO savedDyn busy
       answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)

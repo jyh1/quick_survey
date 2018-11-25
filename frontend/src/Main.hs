@@ -9,7 +9,7 @@ import Pages
 
 
 main :: IO ()
-main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui container" $ do
+main = run 3003 $ mainWidgetWithHead headElement $ divClass "ui text container" $ do
   allPages
 
 

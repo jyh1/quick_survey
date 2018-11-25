@@ -26,8 +26,9 @@ import Common
 data Form = 
     RadioGroup {radioTitle :: T.Text, radioOpts :: [T.Text]}
   | Title {titleTitle :: T.Text}
+  | Plain T.Text
   | List [Form]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 -- type ElementWithID = WithID ElementID QuestionElement
 -- type ParsedQuestion = ElementWithID
