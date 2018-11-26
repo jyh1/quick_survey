@@ -11,10 +11,11 @@
 module PersistentType where
 
 import Database.Persist.TH
+import Data.Aeson
 
 
 import Types 
 
-derivePersistFieldJSON "Question"
+derivePersistFieldJSON "Value"
 
 derivePersistFieldJSON "ElementResponse"

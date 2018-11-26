@@ -11,17 +11,18 @@ import qualified Data.Text as T
 import GHC.Generics
 import           Servant.API
 
-data Question = Question {
-      content :: T.Text
-    , options  :: [T.Text]
-    } deriving (Generic, Show)
+-- data Question = Question {
+--       content :: T.Text
+--     , options  :: [T.Text]
+--     } deriving (Generic, Show)
 
-instance ToJSON Question where
-    toEncoding = genericToEncoding defaultOptions
+-- instance ToJSON Question where
+--     toEncoding = genericToEncoding defaultOptions
 
-instance FromJSON Question
+-- instance FromJSON Question
 
-type SurveyContent = [Question]
+-- type SurveyContent = [Question]
+type SurveyContent = Value
 
 type WithID key ele = (key, ele)
 
