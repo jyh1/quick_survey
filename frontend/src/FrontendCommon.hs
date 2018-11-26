@@ -32,7 +32,6 @@ data Form =
 
 -- type ElementWithID = WithID ElementID QuestionElement
 -- type ParsedQuestion = ElementWithID
-type Survey = Form
 
 
 data FormState t m = FormState {post :: PostRes t m, counter :: Int}

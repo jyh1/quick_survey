@@ -9,7 +9,8 @@ import Reflex.Dom
 import qualified Data.Text as T
 import Data.Text.Lazy.Encoding(encodeUtf8)
 import Data.Text.Lazy(fromStrict)
-import Data.Aeson (decode')
+import Data.Aeson 
+import Data.Aeson.Types (Parser, typeMismatch, parseMaybe)
 import           Reflex.Dom.Contrib.Widgets.ButtonGroup
 import           Reflex.Dom.Contrib.Widgets.Common
 import           Data.Maybe                 (fromMaybe)
@@ -18,11 +19,12 @@ import qualified Data.Map as Map
 import Data.Traversable (mapAccumL) 
 import Control.Monad.State
 
+import Data.Vector (toList)
 
 import Common
 import FrontendCommon
 
-jsonToQuestion :: T.Text -> Maybe [Question]
+jsonToQuestion :: T.Text -> Maybe SurveyContent
 jsonToQuestion = decode' . encodeUtf8 . fromStrict
 
 -- return next available id and parsed question
@@ -32,17 +34,46 @@ jsonToQuestion = decode' . encodeUtf8 . fromStrict
 --     [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
 --   )
 
-parseSurvey :: SurveyContent -> Form
--- parseSurvey qlis =  snd (mapAccumL parseQuestion 0 qlis)
-parseSurvey _ = List [
-  Title "Question 1",
-  RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],
-  List [Plain "Philip Thomas will be an assistant professor at the University of Massachusetts Amherst starting in September. Before that,", RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
-  Title "Question 2",
-  RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
-  , RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
-  ]
+parseRadioGroup, parseTitle, parseFormObject :: Object -> Parser Form
+parseRadioGroup obj = do
+  title <- obj .: "title"
+  choices <- obj .: "choices"
+  return (RadioGroup title choices)
 
+parseTitle obj = Title <$> (obj .: "title")
+
+parseFormObject obj = do
+  formType <- obj .:? "type"
+  case formType of
+    Nothing -> parseRadioGroup obj
+    Just "radiogroup" -> parseRadioGroup obj
+    Just "title" -> parseTitle obj
+    Just "text" -> (obj .: "title") >>= parsePlain
+    Just other -> fail ("Unkonw type: " <> other)
+
+parsePlain :: T.Text -> Parser Form
+parsePlain t = return (Plain t)
+
+
+parseForm :: SurveyContent -> Parser Form
+parseForm (Object obj) = parseFormObject obj
+parseForm (Array arr) = (List . toList) <$> mapM parseForm arr
+parseForm (String str) = parsePlain str
+parseForm val = typeMismatch "Form" val
+
+
+parseSurvey :: SurveyContent -> Maybe Form
+parseSurvey raw = parseMaybe parseForm raw
+-- parseSurvey _ = List [
+--   Title "Question 1",
+--   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],
+--   List [Plain "Philip Thomas will be an assistant professor at the University of Massachusetts Amherst starting in September. Before that,", RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
+--   Title "Question 2",
+--   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
+--   , RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
+--   ]
+parseSurvey' :: SurveyContent -> Form
+parseSurvey' raw = fromMaybe (List []) (parseSurvey raw)
 
 renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
 renderQuestionLis upstreamE = do
@@ -51,7 +82,7 @@ renderQuestionLis upstreamE = do
 
 renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
 renderSurvey postRes qLis = divClass "ui form" $
-  evalStateT (renderForm (parseSurvey qLis)) (FormState postRes 0)
+  evalStateT (renderForm (parseSurvey' qLis)) (FormState postRes 0)
 
 bumpCounter :: Monad m => RenderElement t m ()
 bumpCounter = modify bump
@@ -182,5 +213,5 @@ semRadioGroup dynName dynEntryList cfg = do
 
 
 
-testQuestion :: [Question]
-testQuestion = sampleSurvey
+-- testQuestion :: [Question]
+-- testQuestion = sampleSurvey
