@@ -37,7 +37,8 @@ parseRadioGroup, parseTitle, parseFormObject :: Object -> Parser Form
 parseRadioGroup obj = do
   title <- obj .: "title"
   choices <- obj .: "choices"
-  return (RadioGroup title choices)
+  colCount <- obj .:? "colCount"
+  return (RadioGroup title choices colCount)
 
 parseTitle obj = Title <$> (obj .: "title")
 
@@ -123,11 +124,11 @@ renderElementWith _ _ (Title title) = do
 renderElementWith _ _ (Plain t) = do
   el "p" (text t)
   return never
-renderElementWith postRes rId (RadioGroup radioT radioO) = do
+renderElementWith postRes rId (RadioGroup radioT radioO colCount) = do
   rec divClass "field" $ el "label" $ do
         text radioT
         displayAnswer radioO savedDyn busy
-      answer <- optionRadioGroup (constDyn radioID) (constDyn radioO)
+      answer <- optionRadioGroup (constDyn radioID) (constDyn radioO) (fromMaybe 0 colCount)
       eventSel <- updated <$> holdUniqDyn (_hwidget_value answer)
       let eventResponse = getResponse <$> eventSel
       postToServer <- postRes rId eventResponse
@@ -161,15 +162,15 @@ displayAnswer opts sel busy =
       encloseEle p ele = elDynAttr "div" ((display . p) <$> busy) ele
       selAttr p bc = ("class" =: ("ui left pointing basic label " <> if bc == 0 then "green" else "")) <> if bc == 0 then visible p else mempty
 
-optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> m (HtmlWidget t (Maybe Int))
-optionRadioGroup groupK opts =
+optionRadioGroup :: MonadWidget t m => Dynamic t T.Text -> Dynamic t [T.Text] -> Int -> m (HtmlWidget t (Maybe Int))
+optionRadioGroup groupK opts colN =
   -- rbs :: HtmlWidget t (Maybe Int) <- 
     semRadioGroup 
           groupK
-          (fmap (zip [0..]) opts)
+          (fmap (zip [0..]) opts) colN
           WidgetConfig { _widgetConfig_initialValue = Nothing
                       , _widgetConfig_setValue     = never
-                      , _widgetConfig_attributes   = constDyn ("class" =: "inline fields")}
+                      , _widgetConfig_attributes   = constDyn ("class" =: "grouped fields")}
   -- return rbs
 
 
@@ -178,9 +179,11 @@ semRadioGroup :: (MonadWidget t m, Eq a)
               -- ^ The name for the button group (different groups should be given different names)
            -> Dynamic t [(a,T.Text)]
               -- ^ Selectable values and their string labels
+           -> Int
+              -- ^ Number of columns
            -> GWidget t m (Maybe a)
               -- ^ Radio group in a 'GWidget' interface (function from 'WidgetConfig' to 'HtmlWidget' )
-semRadioGroup dynName dynEntryList cfg = do
+semRadioGroup dynName dynEntryList colN cfg = do
   let btns = (\pairs ->
         Map.fromList (zip [1..] (map fst pairs))) <$> dynEntryList
 
@@ -188,6 +191,8 @@ semRadioGroup dynName dynEntryList cfg = do
 
   where
 
+    filedStyle = 
+      "display: inline-block; padding-left: .5em; padding-right: .5em;" <> getColWidth colN
     mkBtnAttrs nm chked =
         "type" =: "checkbox"
      <> "name" =: nm
@@ -197,7 +202,7 @@ semRadioGroup dynName dynEntryList cfg = do
     mkCheckClass = "class" =: "ui checkbox radio"
     handleOne _ dynV dynChecked = do
 
-      divClass "field" $ elAttr "div" mkCheckClass $ do
+      elAttr "div" ("class" =: "field" <> "style" =: filedStyle) $ elAttr "div" mkCheckClass $ do
         let txt = zipDynWith (\v m -> fromMaybe "" $ Prelude.lookup v m)
                              dynV dynEntryList
 
@@ -209,7 +214,10 @@ semRadioGroup dynName dynEntryList cfg = do
 
         return (Click `domEvent` b, f)
 
-
+getColWidth :: Int -> T.Text
+getColWidth n
+        | n > 0 = "width: " <> tshow (quot 100 n) <> "%;"
+        | otherwise = ""
 
 -- testQuestion :: [Question]
 -- testQuestion = sampleSurvey

@@ -24,7 +24,7 @@ import Common
 
 
 data Form = 
-    RadioGroup {radioTitle :: T.Text, radioOpts :: [T.Text]}
+    RadioGroup {radioTitle :: T.Text, radioOpts :: [T.Text], colCount :: Maybe Int}
   | Title {titleTitle :: T.Text}
   | Plain T.Text
   | List [Form]
