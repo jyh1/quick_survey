@@ -68,7 +68,7 @@ server pool sName =
         surveyGet :: IO (Either T.Text SurveyContent)
         surveyGet = flip runSqlPersistMPool pool $ do
             mSurvey <- selectFirst [SurveyName ==. sName] []
-            return $ maybe (Left "Survey doesn't exist") (Right . fromStrict) (surveyContent <$> entityVal <$> mSurvey)
+            return $ maybe (Left "Survey Not Found") (Right . fromStrict) (surveyContent <$> entityVal <$> mSurvey)
 
         saveResponse :: FieldID -> T.Text -> ElementResponse -> IO ElementResponse
         saveResponse field user res = 

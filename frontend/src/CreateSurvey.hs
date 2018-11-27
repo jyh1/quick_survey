@@ -6,6 +6,7 @@ import Reflex.Dom.Core
 import qualified Data.Text as T
 import           Data.Monoid ((<>))
 import Data.Maybe (isJust)
+import Control.Monad (join)
 
 import Question
 import Fileinput
@@ -72,7 +73,7 @@ searchInfo errorStatus = do
       return (a, b)
 
   
-searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool)
+searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool, Dynamic t T.Text)
 searchSurvey = do
       rec
         (onInput, onSearch) <- searchInfo errorStatus
@@ -84,19 +85,19 @@ searchSurvey = do
           (mergeWith (&&) [True <$ fail, False <$ clearError])
       currentUser <- holdDyn (Left "None") ((Right . snd) <$> onSearch)
       errorMessage <- holdDyn "None" fail
-      return ((\x -> (postResponse currentUser, x)) <$> success, errorStatus)
+      return ((\x -> (postResponse currentUser, x)) <$> success, errorStatus, errorMessage)
 
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ divClass "field" $ do
   rec
     elClass "h3" "ui header" $ do
       elDynClass "i" (icon <$> errorStatus) blank
-      divClass "content" $ dynText (message <$> errorStatus)
-    (fetched, errorStatus) <- searchSurvey
+      divClass "content" (dynText (join ((message errMsg)<$> errorStatus)))
+    (fetched, errorStatus, errMsg) <- searchSurvey
   return fetched
   where
-    message False = "Fill a Survey"
-    message True = "Survey Not Found"
+    message _ False = constDyn "Fill a Survey"
+    message err True = err
     icon True = "exclamation circle icon"
     icon False = "edit alternate icon"
   
