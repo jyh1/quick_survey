@@ -5,7 +5,7 @@
 
 module Question where
 
-import Reflex.Dom
+import Reflex.Dom hiding (Value)
 import qualified Data.Text as T
 import Data.Text.Lazy.Encoding(encodeUtf8)
 import Data.Text.Lazy(fromStrict)
@@ -25,7 +25,7 @@ import Common
 import FrontendCommon
 
 jsonToQuestion :: T.Text -> Maybe SurveyContent
-jsonToQuestion = decode' . encodeUtf8 . fromStrict
+jsonToQuestion = Just . encodeUtf8 . fromStrict
 
 -- return next available id and parsed question
 -- parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
@@ -54,8 +54,7 @@ parseFormObject obj = do
 parsePlain :: T.Text -> Parser Form
 parsePlain t = return (Plain t)
 
-
-parseForm :: SurveyContent -> Parser Form
+parseForm :: Value -> Parser Form
 parseForm (Object obj) = parseFormObject obj
 parseForm (Array arr) = (List . toList) <$> mapM parseForm arr
 parseForm (String str) = parsePlain str
@@ -63,7 +62,7 @@ parseForm val = typeMismatch "Form" val
 
 
 parseSurvey :: SurveyContent -> Maybe Form
-parseSurvey raw = parseMaybe parseForm raw
+parseSurvey raw = (decode raw) >>= parseMaybe parseForm 
 -- parseSurvey _ = List [
 --   Title "Question 1",
 --   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],

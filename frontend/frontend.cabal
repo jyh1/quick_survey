@@ -79,6 +79,7 @@ executable frontend
                     --  , servant-server
                      , reflex-dom-core
                      , jsaddle-warp
+                     , bytestring
                     --  , lens
 
                     --  debug
