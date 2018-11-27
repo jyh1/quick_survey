@@ -26,7 +26,7 @@ createSurvey = do
       text "Add a Survey"
     uploadContent <- fileInputButton
     fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
-  return ((\x -> (dummyPost, x)) <$> (fmapMaybe jsonToQuestion uploadContent))
+  return ((\x -> (dummyPost, x)) <$> (jsonToQuestion <$> uploadContent))
     where
       dummyPost _ res = return res
 

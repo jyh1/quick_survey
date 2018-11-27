@@ -16,7 +16,6 @@ import           Reflex.Dom.Contrib.Widgets.Common
 import           Data.Maybe                 (fromMaybe)
 import           Data.Monoid ((<>))
 import qualified Data.Map as Map
-import Data.Traversable (mapAccumL) 
 import Control.Monad.State
 
 import Data.Vector (toList)
@@ -24,8 +23,8 @@ import Data.Vector (toList)
 import Common
 import FrontendCommon
 
-jsonToQuestion :: T.Text -> Maybe SurveyContent
-jsonToQuestion = Just . encodeUtf8 . fromStrict
+jsonToQuestion :: T.Text -> SurveyContent
+jsonToQuestion = encodeUtf8 . fromStrict
 
 -- return next available id and parsed question
 -- parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
