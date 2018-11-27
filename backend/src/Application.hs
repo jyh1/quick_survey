@@ -21,6 +21,7 @@ import           Database.Persist.Sqlite ( ConnectionPool, createSqlitePool
 import Data.Maybe(fromMaybe)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Logger (runStderrLoggingT, logInfoN)
+import Data.ByteString.Lazy (toStrict, fromStrict)
 
 import Common
 import Types
@@ -60,14 +61,14 @@ server pool sName =
           exists <- selectFirst [SurveyName ==. sName] []
           case exists of
               Nothing -> do
-                _ <- insert (Survey sName newSurvey)
+                _ <- insert (Survey sName (toStrict newSurvey))
                 return Success
               Just _ -> return Failed
 
         surveyGet :: IO (Either T.Text SurveyContent)
         surveyGet = flip runSqlPersistMPool pool $ do
             mSurvey <- selectFirst [SurveyName ==. sName] []
-            return $ maybe (Left "Survey doesn't exist") Right (surveyContent <$> entityVal <$> mSurvey)
+            return $ maybe (Left "Survey doesn't exist") (Right . fromStrict) (surveyContent <$> entityVal <$> mSurvey)
 
         saveResponse :: FieldID -> T.Text -> ElementResponse -> IO ElementResponse
         saveResponse field user res = 

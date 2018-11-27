@@ -62,6 +62,7 @@ library
                      , servant
                      , aeson
                      , text
+                     , bytestring
 
   -- Directories containing source files.
   hs-source-dirs:      src

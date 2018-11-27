@@ -16,6 +16,6 @@ import Data.Aeson
 
 import Types 
 
-derivePersistFieldJSON "Value"
+-- derivePersistFieldJSON "ByteString"
 
 derivePersistFieldJSON "ElementResponse"

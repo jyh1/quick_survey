@@ -1,15 +1,20 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeOperators, FlexibleInstances, MultiParamTypeClasses     #-}
 
 
 module Types where
 
 import Data.Aeson
 import qualified Data.Text as T
+import Data.Text.Lazy.Encoding (decodeUtf8', encodeUtf8)
+import Data.Text.Lazy (toStrict, fromStrict)
 import GHC.Generics
 import           Servant.API
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import Control.Arrow (left)
 
 -- data Question = Question {
 --       content :: T.Text
@@ -22,7 +27,8 @@ import           Servant.API
 -- instance FromJSON Question
 
 -- type SurveyContent = [Question]
-type SurveyContent = Value
+type SurveyContent = BL.ByteString
+
 
 type WithID key ele = (key, ele)
 
@@ -55,10 +61,27 @@ instance FromJSON SavedStatus
 type SurveyAPI = 
     "survey" :> Capture "surveyid" T.Text :>
       (
-             ( Get '[JSON] (Either T.Text SurveyContent))
-        :<|> ( ReqBody '[JSON] SurveyContent :> Post '[JSON] SavedStatus)
+             ( Get '[OctetStream] (Either T.Text SurveyContent))
+        :<|> ( ReqBody '[OctetStream] SurveyContent :> Post '[JSON] SavedStatus)
         :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
+
+-- leftPrefix :: B.ByteString
+-- leftPrefix = B.pack [19, 93, 10, 27]
+
+leftPrefixLazy :: BL.ByteString
+leftPrefixLazy = BL.pack [19, 93, 10, 27]
+
+instance MimeUnrender OctetStream (Either T.Text SurveyContent) where
+    mimeUnrender _ bs = 
+        case BL.stripPrefix leftPrefixLazy bs of
+            Nothing -> Right (Right  bs)
+            Just err -> Left <$> left show (toStrict <$> (decodeUtf8' err))
+
+instance MimeRender OctetStream (Either T.Text SurveyContent) where
+       mimeRender _ (Right bs) = bs
+       mimeRender _ (Left err) = BL.append leftPrefixLazy (encodeUtf8 (fromStrict err))
+   
 
 type StaticAPI = "static" :> Raw
 
