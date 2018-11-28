@@ -19,7 +19,7 @@ fileInputButton =
     text "Create"
     fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
     getFileEvent fileButton
-createSurvey :: MonadWidget t m => m (CreateSurvey t m)
+createSurvey :: MonadWidget t m => m (FetchSurvey t m)
 createSurvey = do
   rec
     divClass "ui icon header" $ do
@@ -27,12 +27,12 @@ createSurvey = do
       text "Add a Survey"
     uploadContent <- fileInputButton
     fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
-  return ((\x -> (dummyPost, x)) <$> (fmapMaybe parseWithOriginal uploadContent))
+  return (fmapMaybe parseWithOriginal uploadContent)
     where
       dummyPost _ res = return res
       parseWithOriginal y = 
         let ybyte = textToSurveyContent y in
-          (\x -> (x, ybyte)) <$> parseSurvey ybyte
+          (\x -> SurveyCreation dummyPost x ybyte) <$> parseSurvey ybyte
 
 
 
@@ -89,7 +89,7 @@ searchSurvey = do
           (mergeWith (&&) [True <$ fail, False <$ clearError])
       currentUser <- holdDyn (Left "None") ((Right . snd) <$> onSearch)
       errorMessage <- holdDyn "None" fail
-      return ((\x -> (postResponse currentUser, x)) <$> success, errorStatus, errorMessage)
+      return ((\x -> SurveySearch (postResponse currentUser) x) <$> success, errorStatus, errorMessage)
 
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ divClass "field" $ do
@@ -106,11 +106,11 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
     icon False = "edit alternate icon"
   
 
-createOrFetch :: MonadWidget t m => m (CreateSurvey t m, FetchSurvey t m)
+createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column very relaxed stackable grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
       loadedSurvey <- divClass "ui column stackable center aligned" createSurvey
       surveyNameSearch <- divClass "column" $ divClass "field" findSurvey
-      return (loadedSurvey, surveyNameSearch)
+      return (leftmost [loadedSurvey, surveyNameSearch])

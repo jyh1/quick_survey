@@ -40,9 +40,20 @@ type RenderElement t m a = StateT (FormState t m) m a
 type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
 
 -- The type returned by survey search
-type FetchSurvey t m = Event t (PostRes t m, Form)
+type SurveySearch t m = (PostRes t m, Form)
+data SurveyGeneration t m = 
+    SurveySearch {getPost :: (PostRes t m), getForm :: Form} 
+    | SurveyCreation {getPost :: (PostRes t m), getForm :: Form, getContent :: SurveyContent}
+
+getPostAndForm :: MonadWidget t m => SurveyGeneration t m -> (PostRes t m, Form)
+getPostAndForm sg = (getPost sg, getForm sg)
+type FetchSurvey t m = Event t (SurveyGeneration t m)
 -- Survey creation
-type CreateSurvey t m = Event t (PostRes t m, (Form, SurveyContent))
+-- type CreateSurvey t m = Event t (PostRes t m, (Form, SurveyContent))
+
+-- Conversion
+
+
 -- Rendering Question
 type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 
