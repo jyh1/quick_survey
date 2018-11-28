@@ -40,9 +40,9 @@ type RenderElement t m a = StateT (FormState t m) m a
 type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
 
 -- The type returned by survey search
-type FetchSurvey t m = Event t (PostRes t m, SurveyContent)
+type FetchSurvey t m = Event t (PostRes t m, Form)
 -- Survey creation
-type CreateSurvey t m = (FetchSurvey t m, PostSurvey t m)
+type CreateSurvey t m = Event t (PostRes t m, (Form, SurveyContent))
 -- Rendering Question
 type PostRes t m = FieldID -> Event t ElementResponse -> m (Event t ElementResponse)
 

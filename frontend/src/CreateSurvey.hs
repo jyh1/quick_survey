@@ -19,7 +19,7 @@ fileInputButton =
     text "Create"
     fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
     getFileEvent fileButton
-createSurvey :: MonadWidget t m => m (FetchSurvey t m)
+createSurvey :: MonadWidget t m => m (CreateSurvey t m)
 createSurvey = do
   rec
     divClass "ui icon header" $ do
@@ -27,9 +27,12 @@ createSurvey = do
       text "Add a Survey"
     uploadContent <- fileInputButton
     fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
-  return ((\x -> (dummyPost, x)) <$> (jsonToQuestion <$> uploadContent))
+  return ((\x -> (dummyPost, x)) <$> (fmapMaybe parseWithOriginal uploadContent))
     where
       dummyPost _ res = return res
+      parseWithOriginal y = 
+        let ybyte = textToSurveyContent y in
+          (\x -> (x, ybyte)) <$> parseSurvey ybyte
 
 
 
@@ -79,7 +82,8 @@ searchSurvey = do
         (onInput, onSearch) <- searchInfo errorStatus
         dynSurveyName <- holdDyn (Left "None") ((Right . fst) <$> onSearch)
         let (fetch, postResponse, _) = ajaxFunctions dynSurveyName
-        (success, fail) <- fetch (() <$ onSearch)
+        (successRaw, fail) <- fetch (() <$ onSearch)
+        let success = fmapMaybe parseSurvey successRaw
         let clearError = leftmost [() <$ success, onInput]
         errorStatus <- foldDyn const False 
           (mergeWith (&&) [True <$ fail, False <$ clearError])
@@ -102,11 +106,11 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
     icon False = "edit alternate icon"
   
 
-createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
+createOrFetch :: MonadWidget t m => m (CreateSurvey t m, FetchSurvey t m)
 createOrFetch = divClass "ui placeholder segment" $ 
   divClass "ui two column very relaxed stackable grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
       loadedSurvey <- divClass "ui column stackable center aligned" createSurvey
       surveyNameSearch <- divClass "column" $ divClass "field" findSurvey
-      return (leftmost [loadedSurvey, surveyNameSearch])
+      return (loadedSurvey, surveyNameSearch)

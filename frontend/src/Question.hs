@@ -18,14 +18,18 @@ import           Data.Monoid ((<>))
 import qualified Data.Map as Map
 import Control.Monad.State
 
+import Data.ByteString.Lazy(ByteString)
+
 import Data.Vector (toList)
 
 import Common
 import FrontendCommon
 
-jsonToQuestion :: T.Text -> SurveyContent
-jsonToQuestion = encodeUtf8 . fromStrict
+jsonToQuestion :: T.Text -> Maybe Form
+jsonToQuestion = parseSurvey . textToSurveyContent
 
+textToSurveyContent :: T.Text -> ByteString
+textToSurveyContent = encodeUtf8 . fromStrict
 -- return next available id and parsed question
 -- parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
 -- parseQuestion eid que = 
@@ -74,14 +78,14 @@ parseSurvey raw = (decode raw) >>= parseMaybe parseForm
 parseSurvey' :: SurveyContent -> Form
 parseSurvey' raw = fromMaybe (List []) (parseSurvey raw)
 
-renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, SurveyContent) -> m ()
+renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, Form) -> m ()
 renderQuestionLis upstreamE = do
   widgetHold (return never) (uncurry renderSurvey <$> upstreamE)
   return ()
 
-renderSurvey :: (MonadWidget t m) => PostRes t m -> SurveyContent -> m (Event t SurveyUpdate)
+renderSurvey :: (MonadWidget t m) => PostRes t m -> Form -> m (Event t SurveyUpdate)
 renderSurvey postRes qLis = divClass "ui form" $
-  evalStateT (renderForm (parseSurvey' qLis)) (FormState postRes 0)
+  evalStateT (renderForm qLis) (FormState postRes 0)
 
 bumpCounter :: Monad m => RenderElement t m ()
 bumpCounter = modify bump

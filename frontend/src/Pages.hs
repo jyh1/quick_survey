@@ -12,9 +12,9 @@ import FrontendCommon
 import SurveyUpload (submitForm)
 
 
-homePage :: MonadWidget t m => Dynamic t Page -> m (Event t PageStatus, FetchSurvey t m)
+homePage :: MonadWidget t m => Dynamic t Page -> m (Event t PageStatus, CreateSurvey t m)
 homePage active = do
-  createE <- displayPage active Home createOrFetch
+  (createE, _) <- displayPage active Home createOrFetch
   let newStat = (PageStatus [Home, Preview, Submit] Preview)
   return (newStat <$ createE, createE)
 
@@ -35,8 +35,8 @@ allPages = do
     navClick <- fmap (clickActive <$>) (breadCrumb pageStatus)
     (newStatus, createE) <- homePage curPage
     let surCreate = const <$> newStatus
-  submitPage curPage (snd <$> createE)
-  previewPage curPage createE
+  submitPage curPage ((snd . snd) <$> createE)
+  previewPage curPage (fmap fst <$> createE)
 
 initialPage :: PageStatus
 initialPage = PageStatus [Home] Home
