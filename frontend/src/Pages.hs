@@ -23,8 +23,13 @@ homePage active = do
 
 
 previewPage, surveyPage :: MonadWidget t m => Dynamic t Page -> FetchSurvey t m -> m ()
-previewPage active createE =
-  displayPage active Preview (renderQuestionLis (getPostAndForm <$> createE))
+previewPage active createE = 
+  displayPage active Preview $ do
+    divClass "ui warning tiny message" $ do
+      divClass "header" (text "Preview Only")
+      elClass "ul" "list" $ el "li" (text "Your responses here will not be saved")
+
+    renderQuestionLis (getPostAndForm <$> createE)
 
 surveyPage active createE =
   displayPage active Survey (renderQuestionLis (getPostAndForm <$> createE))
