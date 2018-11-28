@@ -63,7 +63,7 @@ type PostResponse t m = Dynamic t (Either Text Text) -> PostRes t m
 type PostSurvey t m = Dynamic t (Either Text SurveyContent) -> Event t () -> m (Event t (), Event t ())
 
 -- Page types
-data Page = Home | Preview | Submit | Survey
+data Page = Home | Preview | Submit | Survey | Responses
     deriving(Show, Eq)
 data PageStatus = PageStatus {pages :: [Page], activated :: Page}
 
