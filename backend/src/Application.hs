@@ -61,14 +61,14 @@ server pool sName =
           exists <- selectFirst [SurveyName ==. sName] []
           case exists of
               Nothing -> do
-                _ <- insert (Survey sName (toStrict newSurvey))
+                _ <- insert (Survey sName  newSurvey)
                 return Success
               Just _ -> return Failed
 
         surveyGet :: IO (Either T.Text SurveyContent)
         surveyGet = flip runSqlPersistMPool pool $ do
             mSurvey <- selectFirst [SurveyName ==. sName] []
-            return $ maybe (Left "Survey Not Found") (Right . fromStrict) (surveyContent <$> entityVal <$> mSurvey)
+            return $ maybe (Left "Survey Not Found") Right (surveyContent <$> entityVal <$> mSurvey)
 
         saveResponse :: FieldID -> T.Text -> ElementResponse -> IO ElementResponse
         saveResponse field user res = 

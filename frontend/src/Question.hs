@@ -7,8 +7,9 @@ module Question where
 
 import Reflex.Dom hiding (Value)
 import qualified Data.Text as T
-import Data.Text.Lazy.Encoding(encodeUtf8)
-import Data.Text.Lazy(fromStrict)
+import Data.Text.Encoding(encodeUtf8)
+-- import Data.Text.Lazy(fromStrict)
+import Data.ByteString.Lazy(fromStrict)
 import Data.Aeson 
 import Data.Aeson.Types (Parser, typeMismatch, parseMaybe)
 import qualified Data.Attoparsec.ByteString as AB
@@ -19,7 +20,7 @@ import           Data.Monoid ((<>))
 import qualified Data.Map as Map
 import Control.Monad.State
 
-import Data.ByteString.Lazy(ByteString)
+-- import Data.ByteString.Lazy(ByteString)
 
 import Data.Vector (toList)
 
@@ -29,8 +30,8 @@ import FrontendCommon
 jsonToQuestion :: T.Text -> Either String Form
 jsonToQuestion = parseSurvey . textToSurveyContent
 
-textToSurveyContent :: T.Text -> ByteString
-textToSurveyContent = encodeUtf8 . fromStrict
+textToSurveyContent :: T.Text -> SurveyContent
+textToSurveyContent = encodeUtf8
 -- return next available id and parsed question
 -- parseQuestion :: ElementID -> Question -> (ElementID, ParsedQuestion)
 -- parseQuestion eid que = 

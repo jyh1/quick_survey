@@ -8,7 +8,7 @@ module Types where
 
 import Data.Aeson
 import qualified Data.Text as T
-import Data.Text.Lazy.Encoding (decodeUtf8', encodeUtf8)
+import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Data.Text.Lazy (toStrict, fromStrict)
 import GHC.Generics
 import           Servant.API
@@ -27,7 +27,7 @@ import Control.Arrow (left)
 -- instance FromJSON Question
 
 -- type SurveyContent = [Question]
-type SurveyContent = BL.ByteString
+type SurveyContent = B.ByteString
 
 
 type WithID key ele = (key, ele)
@@ -66,21 +66,23 @@ type SurveyAPI =
         :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
 
--- leftPrefix :: B.ByteString
--- leftPrefix = B.pack [19, 93, 10, 27]
+leftPrefix :: B.ByteString
+leftPrefix = B.pack [19, 93, 10, 27]
 
-leftPrefixLazy :: BL.ByteString
-leftPrefixLazy = BL.pack [19, 93, 10, 27]
+-- leftPrefixLazy :: BL.ByteString
+-- leftPrefixLazy = B.pack [19, 93, 10, 27]
 
 instance MimeUnrender OctetStream (Either T.Text SurveyContent) where
     mimeUnrender _ bs = 
-        case BL.stripPrefix leftPrefixLazy bs of
-            Nothing -> Right (Right  bs)
-            Just err -> Left <$> left show (toStrict <$> (decodeUtf8' err))
+        case B.stripPrefix leftPrefix sbs of
+            Nothing -> Right (Right  sbs)
+            Just err -> Left <$> left show (decodeUtf8' err)
+        where
+            sbs = BL.toStrict bs
 
 instance MimeRender OctetStream (Either T.Text SurveyContent) where
-       mimeRender _ (Right bs) = bs
-       mimeRender _ (Left err) = BL.append leftPrefixLazy (encodeUtf8 (fromStrict err))
+       mimeRender _ (Right bs) = BL.fromStrict bs
+       mimeRender _ (Left err) = BL.fromStrict (B.append leftPrefix (encodeUtf8 err))
    
 
 type StaticAPI = "static" :> Raw
