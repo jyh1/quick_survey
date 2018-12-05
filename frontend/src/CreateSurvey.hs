@@ -13,13 +13,15 @@ import Fileinput
 import Request
 import FrontendCommon
 
+type SurveyError t = Event t String
+
 fileInputButton :: MonadWidget t m => m (Event t T.Text)
 fileInputButton =
   elClass "label" "ui primary button" $ do
     text "Create"
     fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
     getFileEvent fileButton
-createSurvey :: MonadWidget t m => m (FetchSurvey t m)
+createSurvey :: MonadWidget t m => m (FetchSurvey t m, SurveyError t)
 createSurvey = do
   rec
     divClass "ui icon header" $ do
@@ -27,7 +29,8 @@ createSurvey = do
       text "Add a Survey"
     uploadContent <- fileInputButton
     fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
-  return (filterRight (parseWithOriginal <$> uploadContent))
+  let fetchEvent = parseWithOriginal <$> uploadContent
+  return (filterRight fetchEvent, filterLeft fetchEvent)
     where
       dummyPost _ res = return res
       parseWithOriginal y = 
@@ -104,13 +107,28 @@ findSurvey = divClass "ui form" $ divClass "field" $ do
     message err True = err
     icon True = "exclamation circle icon"
     icon False = "edit alternate icon"
-  
 
-createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
-createOrFetch = divClass "ui placeholder segment" $ 
+parsingError :: MonadWidget t m => Event t T.Text -> Event t () -> m ()
+parsingError msg clear = do
+  isHidden <- holdDyn "hidden" (leftmost ["" <$ msg, "hidden" <$ clear])
+  let msgAttr = ("ui negative tiny message " <>) <$> isHidden
+  elDynClass "div" msgAttr $ do
+    divClass "header" (text "Parsing Error")
+    errMsg <- holdDyn "" msg
+    elClass "ul" "list" $ el "li" (dynText errMsg)
+
+homePanel :: MonadWidget t m => m (FetchSurvey t m, SurveyError t)
+homePanel = divClass "ui placeholder segment" $ 
   divClass "ui two column very relaxed stackable grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
-      loadedSurvey <- divClass "ui column stackable center aligned" createSurvey
+      (loadedSurvey, errE) <- divClass "ui column stackable center aligned" createSurvey
       surveyNameSearch <- divClass "column" $ divClass "field" findSurvey
-      return (leftmost [loadedSurvey, surveyNameSearch])
+      return (leftmost [loadedSurvey, surveyNameSearch], errE)
+
+createOrFetch :: MonadWidget t m => m (FetchSurvey t m)
+createOrFetch = do
+  rec
+    parsingError ((T.pack . drop 12) <$> errE) (() <$ fetchEvent)
+    (fetchEvent, errE) <- homePanel
+  return fetchEvent

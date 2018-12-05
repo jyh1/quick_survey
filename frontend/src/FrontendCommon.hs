@@ -40,7 +40,6 @@ type RenderElement t m a = StateT (FormState t m) m a
 type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
 
 -- The type returned by survey search
-type SurveySearch t m = (PostRes t m, Form)
 data SurveyGeneration t m = 
     SurveySearch {getPost :: (PostRes t m), getForm :: Form} 
     | SurveyCreation {getPost :: (PostRes t m), getForm :: Form, getContent :: SurveyContent}
