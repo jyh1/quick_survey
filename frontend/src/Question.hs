@@ -11,6 +11,7 @@ import Data.Text.Lazy.Encoding(encodeUtf8)
 import Data.Text.Lazy(fromStrict)
 import Data.Aeson 
 import Data.Aeson.Types (Parser, typeMismatch, parseMaybe)
+import qualified Data.Attoparsec.ByteString as AB
 import           Reflex.Dom.Contrib.Widgets.ButtonGroup
 import           Reflex.Dom.Contrib.Widgets.Common
 import           Data.Maybe                 (fromMaybe)
@@ -25,7 +26,7 @@ import Data.Vector (toList)
 import Common
 import FrontendCommon
 
-jsonToQuestion :: T.Text -> Maybe Form
+jsonToQuestion :: T.Text -> Either String Form
 jsonToQuestion = parseSurvey . textToSurveyContent
 
 textToSurveyContent :: T.Text -> ByteString
@@ -65,8 +66,14 @@ parseForm (String str) = parsePlain str
 parseForm val = typeMismatch "Form" val
 
 
-parseSurvey :: SurveyContent -> Maybe Form
-parseSurvey raw = (decode raw) >>= parseMaybe parseForm 
+parseSurvey :: SurveyContent -> Either String Form
+parseSurvey raw = 
+  resultToEither (AB.parse (json >>= parseForm) (fromStrict raw))
+
+resultToEither :: AB.IResult a b -> Either String b
+resultToEither (AB.Fail _ cs e) = Left (unlines cs ++ e)
+-- resultToEither (Partial f) = resultToEither (f )
+resultToEither (AB.Done _ r) = Right r
 -- parseSurvey _ = List [
 --   Title "Question 1",
 --   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],
