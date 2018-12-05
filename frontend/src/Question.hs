@@ -11,7 +11,7 @@ import Data.Text.Encoding(encodeUtf8)
 -- import Data.Text.Lazy(fromStrict)
 import Data.ByteString.Lazy(fromStrict)
 import Data.Aeson 
-import Data.Aeson.Types (Parser, typeMismatch, parseMaybe)
+import Data.Aeson.Types (Parser, typeMismatch, parseEither)
 import           Reflex.Dom.Contrib.Widgets.ButtonGroup
 import           Reflex.Dom.Contrib.Widgets.Common
 import           Data.Maybe                 (fromMaybe)
@@ -26,7 +26,7 @@ import Data.Vector (toList)
 import Common
 import FrontendCommon
 
-jsonToQuestion :: T.Text -> Maybe Form
+jsonToQuestion :: T.Text -> Either String Form
 jsonToQuestion = parseSurvey . textToSurveyContent
 
 textToSurveyContent :: T.Text -> SurveyContent
@@ -66,18 +66,9 @@ parseForm (String str) = parsePlain str
 parseForm val = typeMismatch "Form" val
 
 
-parseSurvey :: SurveyContent -> Maybe Form
-parseSurvey raw = (decode (fromStrict raw)) >>= parseMaybe parseForm 
--- parseSurvey _ = List [
---   Title "Question 1",
---   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"],
---   List [Plain "Philip Thomas will be an assistant professor at the University of Massachusetts Amherst starting in September. Before that,", RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"], RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]],
---   Title "Question 2",
---   RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
---   , RadioGroup "What car are you dirving?" ["Ford", "Vauxhall", "Volkswagen"]
---   ]
-parseSurvey' :: SurveyContent -> Form
-parseSurvey' raw = fromMaybe (List []) (parseSurvey raw)
+parseSurvey :: SurveyContent -> Either String Form
+parseSurvey raw = (eitherDecode' (fromStrict raw)) >>= parseEither parseForm 
+
 
 renderQuestionLis :: (MonadWidget t m) => Event t (PostRes t m, Form) -> m ()
 renderQuestionLis upstreamE = do
@@ -96,12 +87,7 @@ renderForm :: (MonadWidget t m) => Form -> RenderForm t m
 renderForm form = do
   bumpCounter
   renderElement form
-  -- elementRes <- mapM (renderElement postRes) elis
-  -- return (leftmost elementRes)
--- renderForm = undefined
 
--- renderSingle :: (MonadWidget t m) => PostRes t m -> ElementWithID -> m (Event t SurveyUpdate)
--- renderSingle postRes ele = divClass "ui form" (renderElement postRes ele)
 
 renderElement :: (MonadWidget t m) => Form -> RenderForm t m
 renderElement (List elis) = do
@@ -116,11 +102,7 @@ renderElement atomic = do
   lift (elAttr "div" segmentStyle (renderElementWith postRes count atomic))
   where
     segmentStyle = "class" =: "ui segment" <> "style" =: "border-top: none;"
-    -- segmentStyle = "class" =: "ui segment"
--- renderElement (RadioGroup radioT radioO)
--- renderElement _ (_, Title title) = divClass "ui segment" $ divClass "ui segments" $ do
-  -- text title
-  -- return never
+
 
 renderElementWith :: (MonadWidget t m) => PostRes t m -> Int -> Form -> m (Event t SurveyUpdate)
 renderElementWith _ _ (Title title) = do
