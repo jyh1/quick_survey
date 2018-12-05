@@ -19,6 +19,7 @@ import Language.Javascript.JSaddle.Types (JSM)
 import Language.Javascript.JSaddle.Run (syncPoint)
 import Language.Javascript.JSaddle.WebSockets
 import Application
+import System.Process
 #endif
 
 -- | Run the given 'JSM' action as the main entry point.  Either directly
@@ -29,7 +30,8 @@ run _port = id
 #else
 run :: Int -> JSM () -> IO ()
 run port f = do
-    serverApp <- mkApp ":memory:"
+    callCommand "rm test.sqlite"
+    serverApp <- mkApp "test.sqlite"
     app <- jsaddleWithAppOr defaultConnectionOptions (f >> syncPoint) serverApp
     runSettings (setPort port (setTimeout 3600 defaultSettings)) app
 #endif

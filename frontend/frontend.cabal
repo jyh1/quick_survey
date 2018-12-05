@@ -86,6 +86,7 @@ executable frontend
                      , warp
                      , backend
                      , websockets
+                     , process
   
   -- Directories containing source files.
   hs-source-dirs:      src
