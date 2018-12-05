@@ -37,7 +37,7 @@ surveyPage active createE =
 
 submitPage :: MonadWidget t m => Dynamic t Page -> Event t SurveyContent -> m ()
 submitPage active surveyE = 
-  displayPage active Submit (submitForm surveyE)
+  displayPage active Submit (divClass "ui segment" $ submitForm surveyE)
 
 allPages :: MonadWidget t m => m ()
 allPages = do
