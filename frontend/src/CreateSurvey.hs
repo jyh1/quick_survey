@@ -27,7 +27,7 @@ createSurvey = do
       text "Add a Survey"
     uploadContent <- fileInputButton
     fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
-  return (fmapMaybe parseWithOriginal uploadContent)
+  return (filterRight (parseWithOriginal <$> uploadContent))
     where
       dummyPost _ res = return res
       parseWithOriginal y = 
@@ -83,7 +83,7 @@ searchSurvey = do
         dynSurveyName <- holdDyn (Left "None") ((Right . fst) <$> onSearch)
         let (fetch, postResponse, _) = ajaxFunctions dynSurveyName
         (successRaw, fail) <- fetch (() <$ onSearch)
-        let success = fmapMaybe parseSurvey successRaw
+        let success = filterRight (parseSurvey <$> successRaw)
         let clearError = leftmost [() <$ success, onInput]
         errorStatus <- foldDyn const False 
           (mergeWith (&&) [True <$ fail, False <$ clearError])
