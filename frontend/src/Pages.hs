@@ -53,7 +53,7 @@ allPages = do
     navClick <- fmap (clickActive <$>) (breadCrumb pageStatus)
     (newStatus, createE) <- homePage curPage
     let surCreate = const <$> newStatus
-  submitPage curPage (getContent <$> createE)
+  submitPage curPage (fmapMaybe getContent createE)
   previewPage curPage createE
   surveyPage curPage createE
   responsePage curPage (fmapMaybe getName createE)
