@@ -16,7 +16,7 @@ import Servant
 import qualified Data.Text as T
 import           Database.Persist.Sqlite ( ConnectionPool, createSqlitePool
                                          , runSqlPool, runSqlPersistMPool
-                                         , runMigration, selectFirst, (==.)
+                                         , runMigration, selectFirst, selectList, (==.)
                                          , insert, entityVal, repsert)
 import Data.Maybe(fromMaybe)
 import           Control.Monad.IO.Class (liftIO)
@@ -29,11 +29,13 @@ import Types
 import Model
 
 
-userAPI :: Proxy (API :<|> StaticAPI)
+userAPI :: Proxy (SurveyAPI :<|> StaticAPI :<|> ResultAPI)
 userAPI = Proxy
 
+
+
 app :: ConnectionPool -> Application
-app pool = serve userAPI $ (server pool :<|> serverStatic)
+app pool = serve userAPI $ (server pool :<|> serverStatic :<|> resultServer pool)
 
 mkApp :: T.Text -> IO Application
 mkApp sqliteFile = do
@@ -48,7 +50,7 @@ mkApp sqliteFile = do
 
 
 
-server :: ConnectionPool -> Server API
+server :: ConnectionPool -> Server SurveyAPI
 server pool sName =
     surveyGetH :<|> surveyUploadH :<|> saveResponseH
     where
@@ -77,6 +79,25 @@ server pool sName =
               repsert (ResponseKey field sName user) newResponse
               return res
 
+resultServer :: ConnectionPool -> Server ResultAPI
+resultServer pool sname = 
+  (liftIO getAll) :<|> getSingleH
+  where
+    getSingleH uname = liftIO (getSingle uname)
+    buildResult r = 
+      let rv = entityVal r in
+        Result (responseField rv) (responseResponse rv)
+    responseEntry r =
+      let rv = entityVal r in
+        (responseUser rv, responseField rv, responseResponse rv)
+    getSingle :: T.Text -> IO [UserResult]
+    getSingle uname = flip runSqlPersistMPool pool $ do
+      userResponses <- selectList [ResponseName ==. sname, ResponseUser ==. uname] []
+      return (buildResult <$> userResponses)
+    getAll :: IO [SurveyResult]
+    getAll = flip runSqlPersistMPool pool $ do
+      allResponse <- selectList [ResponseName ==. sname] []
+      return (responseEntry <$> allResponse)
 
 
 -- staticAPI :: Proxy StaticAPI

@@ -58,6 +58,15 @@ data SavedStatus = Success | Failed
 instance ToJSON SavedStatus
 instance FromJSON SavedStatus
 
+data UserResult = Result {filed :: FieldID, response :: ElementResponse}
+    deriving (Show, Eq, Generic)
+
+instance ToJSON UserResult where 
+    toEncoding = genericToEncoding defaultOptions
+instance FromJSON UserResult
+    
+type SurveyResult = (T.Text, FieldID, ElementResponse)
+
 type SurveyAPI = 
     "survey" :> Capture "surveyid" T.Text :>
       (
@@ -65,6 +74,12 @@ type SurveyAPI =
         :<|> ( ReqBody '[OctetStream] SurveyContent :> Post '[JSON] SavedStatus)
         :<|> ( Capture "fieldid" FieldID :> Capture "username" T.Text :> ReqBody '[JSON] ElementResponse :> Post '[JSON] ElementResponse)
       )
+type ResultAPI = 
+    "result" :> Capture "surveyid" T.Text :> 
+    (
+          Get '[JSON] [SurveyResult]
+        :<|> (Capture "username" T.Text :> Get '[JSON] [UserResult])
+    )
 
 leftPrefix :: B.ByteString
 leftPrefix = B.pack [19, 93, 10, 27]
