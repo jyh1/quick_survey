@@ -2,6 +2,7 @@
 module Pages where
 
 import Reflex.Dom.Core hiding (Home, Submit, Reset)
+import qualified Data.Text as T
 
 import Question
 import Fileinput
@@ -10,6 +11,7 @@ import CreateSurvey
 import Tabs
 import FrontendCommon
 import SurveyUpload (submitForm)
+import Response (responseInfo)
 
 
 changeTab :: SurveyGeneration t m -> PageStatus
@@ -39,6 +41,10 @@ submitPage :: MonadWidget t m => Dynamic t Page -> Event t SurveyContent -> m ()
 submitPage active surveyE = 
   displayPage active Submit (divClass "ui segment" $ submitForm surveyE)
 
+responsePage :: MonadWidget t m => Dynamic t Page -> Event t T.Text -> m ()
+responsePage active surveyIdE = 
+  displayPage active Responses (divClass "ui segment" $ responseInfo surveyIdE)
+
 allPages :: MonadWidget t m => m ()
 allPages = do
   rec
@@ -50,6 +56,7 @@ allPages = do
   submitPage curPage (getContent <$> createE)
   previewPage curPage createE
   surveyPage curPage createE
+  responsePage curPage (fmapMaybe getName createE)
 
 initialPage :: PageStatus
 initialPage = PageStatus [Home] Home

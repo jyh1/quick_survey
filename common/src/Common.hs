@@ -21,5 +21,5 @@ import Types
 --   ]
 
 
-tshow :: (Show a) => a -> T.Text
-tshow = T.pack . show
+-- tshow :: (Show a) => a -> T.Text
+-- tshow = T.pack . show

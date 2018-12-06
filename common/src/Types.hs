@@ -12,9 +12,11 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Data.Text.Lazy (toStrict, fromStrict)
 import GHC.Generics
 import           Servant.API
+import Servant.Utils.Links(linkURI, safeLink)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Control.Arrow (left)
+import Data.Proxy
 
 -- data Question = Question {
 --       content :: T.Text
@@ -81,6 +83,16 @@ type ResultAPI =
         :<|> (Capture "username" T.Text :> Get '[JSON] [UserResult])
     )
 
+type AllRes = "result" :> Capture "surveyid" T.Text :> Get '[JSON] [SurveyResult]
+
+tshow :: (Show a) => a -> T.Text
+tshow = T.pack . show
+
+-- Generate URL for all responses of a survey
+getResponseURL :: T.Text -> T.Text
+getResponseURL sid = 
+    tshow (linkURI $ safeLink (Proxy :: Proxy ResultAPI) (Proxy :: Proxy AllRes) sid)
+    
 leftPrefix :: B.ByteString
 leftPrefix = B.pack [19, 93, 10, 27]
 

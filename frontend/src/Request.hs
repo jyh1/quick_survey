@@ -27,7 +27,7 @@ ajaxFunctions :: forall t m. MonadWidget t m => Dynamic t (Either T.Text T.Text)
       , PostSurvey t m
     )
 ajaxFunctions sid =
-    let requestFunc = client (Proxy :: Proxy API)
+    let requestFunc = client (Proxy :: Proxy SurveyAPI)
           (Proxy :: Proxy m)
           (Proxy :: Proxy ())
         --   (constDyn (BaseFullUrl Http "localhost" 8081 "/server"))
@@ -49,4 +49,5 @@ ajaxFunctions sid =
             return (() <$ ffilter (== Success) rE, () <$ ffilter (== Failed) rE)
     in
         (fetchSurvey, updateFun, saveSurvey)
+
 

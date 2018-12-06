@@ -45,10 +45,9 @@ msgs name = do
 formInformation :: MonadWidget t m => SurveyContent -> m (Dynamic t Bool, Dynamic t Bool)
 formInformation survey = do
   formHeader
-  rec
-    msgs surveyName
-    clickE <- surveyNameForm undefined
-    surveyName <- eventToParams clickE
+  clickE <- surveyNameForm undefined
+  surveyName <- eventToParams clickE
+  msgs surveyName
   let (_, _, postRes) = ajaxFunctions surveyName
   (succ, fail) <- postRes (constDyn (Right survey)) (() <$ clickE)
   errorStatus <- foldDyn const False (andMerge [False <$ succ, True <$ fail])

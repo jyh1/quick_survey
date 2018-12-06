@@ -83,8 +83,9 @@ searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool, Dynamic t
 searchSurvey = do
       rec
         (onInput, onSearch) <- searchInfo errorStatus
-        dynSurveyName <- holdDyn (Left "None") ((Right . fst) <$> onSearch)
-        let (fetch, postResponse, _) = ajaxFunctions dynSurveyName
+        let surveyName = fst <$> onSearch
+        dynSurveyName <- holdDyn "" surveyName
+        let (fetch, postResponse, _) = ajaxFunctions (Right <$> dynSurveyName)
         (successRaw, fail) <- fetch (() <$ onSearch)
         let success = filterRight (parseSurvey <$> successRaw)
         let clearError = leftmost [() <$ success, onInput]
@@ -92,7 +93,7 @@ searchSurvey = do
           (mergeWith (&&) [True <$ fail, False <$ clearError])
       currentUser <- holdDyn (Left "None") ((Right . snd) <$> onSearch)
       errorMessage <- holdDyn "None" fail
-      return ((\x -> SurveySearch (postResponse currentUser) x) <$> success, errorStatus, errorMessage)
+      return ((\(n, x) -> SurveySearch (postResponse currentUser) x n) <$> (attach (current dynSurveyName) success), errorStatus, errorMessage)
 
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ divClass "field" $ do
