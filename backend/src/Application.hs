@@ -86,7 +86,7 @@ resultServer pool sname =
     getSingleH uname = liftIO (getSingle uname)
     buildResult r = 
       let rv = entityVal r in
-        Result (responseField rv) (responseResponse rv)
+        (responseField rv, responseResponse rv)
     responseEntry r =
       let rv = entityVal r in
         (responseUser rv, responseField rv, responseResponse rv)

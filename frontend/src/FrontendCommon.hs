@@ -13,6 +13,7 @@ import Reflex.Dom.Core
 import qualified Data.Map.Strict as Map
 import Control.Monad.State
 import           Data.Monoid ((<>))
+import qualified Data.IntMap.Strict as IM
 -- import Control.Lens
 
 import Types
@@ -32,26 +33,31 @@ data Form =
 
 -- type ElementWithID = WithID ElementID QuestionElement
 -- type ParsedQuestion = ElementWithID
-
+emptyForm = List []
 
 data FormState t m = FormState {post :: PostRes t m, counter :: Int}
 
 type RenderElement t m a = StateT (FormState t m) m a
 type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
 
+type SavedRes = IM.IntMap ElementResponse
 -- The type returned by survey search
 data SurveyGeneration t m = 
-    SurveySearch {getPost :: (PostRes t m), getForm :: Form, unsafeGetName :: T.Text} 
+    SurveySearch {getPost :: (PostRes t m), getForm :: Form, unsafeGetName :: T.Text, savedResponse :: SavedRes} 
     | SurveyCreation {getPost :: (PostRes t m), getForm :: Form, unsafeGetContent :: SurveyContent}
 
+
 getName :: MonadWidget t m => SurveyGeneration t m -> Maybe T.Text
-getName (SurveySearch _ _ n) = Just n
+getName (SurveySearch _ _ n _) = Just n
 getName _ = Nothing
 
 getContent :: MonadWidget t m => SurveyGeneration t m -> Maybe SurveyContent
 getContent (SurveyCreation _ _ n) = Just n
 getContent _ = Nothing
 
+getSaved :: MonadWidget t m => SurveyGeneration t m -> SavedRes
+getSaved (SurveySearch {savedResponse = s}) = s
+getSaved _ = IM.empty
 
 getPostAndForm :: MonadWidget t m => SurveyGeneration t m -> (PostRes t m, Form)
 getPostAndForm sg = (getPost sg, getForm sg)

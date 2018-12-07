@@ -60,12 +60,13 @@ data SavedStatus = Success | Failed
 instance ToJSON SavedStatus
 instance FromJSON SavedStatus
 
-data UserResult = Result {filed :: FieldID, response :: ElementResponse}
-    deriving (Show, Eq, Generic)
+-- data UserResult = Result {filed :: FieldID, response :: ElementResponse}
+    -- deriving (Show, Eq, Generic)
+type UserResult = (FieldID, ElementResponse)
 
-instance ToJSON UserResult where 
-    toEncoding = genericToEncoding defaultOptions
-instance FromJSON UserResult
+-- instance ToJSON UserResult where 
+--     toEncoding = genericToEncoding defaultOptions
+-- instance FromJSON UserResult
     
 type SurveyResult = (T.Text, FieldID, ElementResponse)
 

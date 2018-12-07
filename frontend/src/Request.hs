@@ -51,3 +51,16 @@ ajaxFunctions sid =
         (fetchSurvey, updateFun, saveSurvey)
 
 
+getResponse :: forall t m. MonadWidget t m => Dynamic t (Either T.Text T.Text) -> 
+    Dynamic t (Either T.Text T.Text) -> Event t () -> m (Event t [UserResult])
+getResponse sid user fire =
+    let requestFunc = client (Proxy :: Proxy ResultAPI)
+            (Proxy :: Proxy m)
+            (Proxy :: Proxy ())
+            (constDyn (BasePath "/"))
+        _ :<|> fetchresult = requestFunc sid
+    in
+        do
+            res <- fetchresult user fire
+            return (fmapMaybe reqSuccess res)
+

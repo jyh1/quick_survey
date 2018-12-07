@@ -7,6 +7,7 @@ import qualified Data.Text as T
 import           Data.Monoid ((<>))
 import Data.Maybe (isJust)
 import Control.Monad (join)
+import qualified Data.IntMap.Strict as IM
 
 import Question
 import Fileinput
@@ -78,7 +79,7 @@ searchInfo errorStatus = do
       b <- justB
       return (a, b)
 
-  
+
 searchSurvey :: MonadWidget t m => m (FetchSurvey t m, Dynamic t Bool, Dynamic t T.Text)
 searchSurvey = do
       rec
@@ -92,8 +93,17 @@ searchSurvey = do
         errorStatus <- foldDyn const False 
           (mergeWith (&&) [True <$ fail, False <$ clearError])
       currentUser <- holdDyn (Left "None") ((Right . snd) <$> onSearch)
+      -- request saved responses
+      parsedFormB <- current <$> (holdDyn emptyForm success)
+      saved <- getResponse (Right <$> dynSurveyName) currentUser (() <$ success)
+      let savedMap = IM.fromList <$> saved
+      let name_form_saved = attach (current dynSurveyName) (attach parsedFormB savedMap)
+
       errorMessage <- holdDyn "None" fail
-      return ((\(n, x) -> SurveySearch (postResponse currentUser) x n) <$> (attach (current dynSurveyName) success), errorStatus, errorMessage)
+      return (
+          (\(n, (f, s)) -> 
+            SurveySearch (postResponse currentUser) f n s) <$> name_form_saved, 
+          errorStatus, errorMessage)
 
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ divClass "field" $ do
