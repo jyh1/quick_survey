@@ -35,7 +35,7 @@ data Form =
 -- type ParsedQuestion = ElementWithID
 emptyForm = List []
 
-data FormState t m = FormState {post :: PostRes t m, counter :: Int}
+data FormState t m = FormState {post :: PostRes t m, counter :: Int, saved :: SavedRes}
 
 type RenderElement t m a = StateT (FormState t m) m a
 type RenderForm t m = RenderElement t m (Event t SurveyUpdate)
@@ -59,8 +59,8 @@ getSaved :: MonadWidget t m => SurveyGeneration t m -> SavedRes
 getSaved (SurveySearch {savedResponse = s}) = s
 getSaved _ = IM.empty
 
-getPostAndForm :: MonadWidget t m => SurveyGeneration t m -> (PostRes t m, Form)
-getPostAndForm sg = (getPost sg, getForm sg)
+getRenderForm :: MonadWidget t m => SurveyGeneration t m -> (PostRes t m, Form, SavedRes)
+getRenderForm sg = (getPost sg, getForm sg, getSaved sg)
 type FetchSurvey t m = Event t (SurveyGeneration t m)
 -- Survey creation
 -- type CreateSurvey t m = Event t (PostRes t m, (Form, SurveyContent))

@@ -31,10 +31,10 @@ previewPage active createE =
       divClass "header" (text "Preview Only")
       elClass "ul" "list" $ el "li" (text "Your responses here will not be saved")
 
-    renderQuestionLis (getPostAndForm <$> createE)
+    renderQuestionLis (getRenderForm <$> createE)
 
 surveyPage active createE =
-  displayPage active Survey (renderQuestionLis (getPostAndForm <$> createE))
+  displayPage active Survey (renderQuestionLis (getRenderForm <$> createE))
   
 
 submitPage :: MonadWidget t m => Dynamic t Page -> Event t SurveyContent -> m ()
