@@ -17,14 +17,20 @@ formHeader =
       text "Survey Settings"
       divClass "sub header" (text "Manage your preferences")
 
+labeledField :: MonadWidget t m => T.Text -> m (Dynamic t (Maybe T.Text))
+labeledField l = divClass "field" $ do
+  el "label" (text l)
+  (inp, _, _) <- divClass "field" $ (surveyNameInput l)
+  return inp
+
 surveyNameForm :: MonadWidget t m => Dynamic t Bool -> m (Event t T.Text)
-surveyNameForm err = 
-  divClass "field" $ do
-    el "label" (text "Survey Name")
-    (savedName, _, _) <- divClass "field" $ (surveyNameInput "Survey Name")
-    (e, _) <- elClass' "div" "ui button" (text "Upload Survey")
-    let uploadEvent = tagMaybe (current savedName) (domEvent Click e)
-    return uploadEvent
+surveyNameForm err = divClass "ui form" $ do
+  savedName <- labeledField "Survey Name"
+  labeledField "Password (Optional)"
+  labeledField "Admin Name"
+  (e, _) <- elClass' "div" "ui primary button" (text "Upload Survey")
+  let uploadEvent = tagMaybe (current savedName) (domEvent Click e)
+  return uploadEvent
 
 successMsg, errorMsg :: MonadWidget t m => Dynamic t T.Text -> m ()
 successMsg name = divClass "ui success message" $ do
@@ -33,7 +39,7 @@ successMsg name = divClass "ui success message" $ do
 
 errorMsg name = divClass "ui error message" $ do
   divClass "header" (text "Error")
-  el "p" (text "The name has been taken, please try another.")
+  el "p" (text "This name has been taken, please try another.")
 
 msgs :: MonadWidget t m => Dynamic t (Either T.Text T.Text) -> m ()
 msgs name = do
