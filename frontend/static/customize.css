@@ -38,7 +38,7 @@
 }
 
 #file-icon-title{
-   font-size: 1.885714rem;
+   font-size: 1.5em;
 }
 
 .find-survey{
@@ -47,6 +47,11 @@
 
 #search-icon{
    font-size :1.7em;
+}
+
+#search-icon-title{
+   white-space: nowrap;
+   font-size: 1.15em;
 }
 
 .survey-tab{

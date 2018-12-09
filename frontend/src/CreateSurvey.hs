@@ -106,9 +106,9 @@ searchSurvey = do
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
 findSurvey = divClass "ui form" $ do
   rec
-    divClass "field" $ elClassId "h3" "ui header" "search-icon" $ do
+    divClass "field" $ elClass "h3" "ui header" $ do
       elDynClass "i" (icon <$> errorStatus) blank
-      divClass "content" (dynText (join ((message errMsg)<$> errorStatus)))
+      divClassId "content" "search-icon-title" (dynText (join ((message errMsg)<$> errorStatus)))
     (fetched, errorStatus, errMsg) <- searchSurvey
   return fetched
   where
