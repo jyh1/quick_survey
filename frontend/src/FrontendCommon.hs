@@ -1,5 +1,15 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
-
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module FrontendCommon(
     module FrontendCommon,
@@ -94,6 +104,7 @@ eqDyn = zipDynWith (==)
 makePageStatus :: Reflex t => Dynamic t [Page] -> Dynamic t Page -> Dynamic t PageStatus
 makePageStatus = zipDynWith PageStatus
 
+{-# INLINABLE toggleHide #-}
 toggleHide :: MonadWidget t m => Dynamic t Bool -> Text -> Dynamic t (Map.Map Text Text) -> m a -> m a
 toggleHide hide tag attrs = 
     elDynAttr tag (zipDynWith (Map.insertWith (<>) "style") (hideStyle <$> hide) attrs)
@@ -101,6 +112,8 @@ toggleHide hide tag attrs =
             hideStyle False = ";display:none"
             hideStyle True = ""
 
+
+{-# INLINABLE surveyNameInput #-}
 surveyNameInput :: MonadWidget t m => Text -> m (Dynamic t (Maybe Text), Event t (), TextInput t)
 surveyNameInput placeholder = do
     textIn <- textInput (def & attributes .~ inputAttribute)
@@ -111,6 +124,12 @@ surveyNameInput placeholder = do
           let trimed = T.strip b in
             if T.null trimed then Nothing else Just trimed
 
--- hideDynDivClass :: MonadWidget t m => Dynamic t Bool -> Dynamic t Text -> m a -> m a
--- hideDynDivClass hide cls = 
---     toggleHide hide "div" (("class" =:) <$> cls)
+{-# INLINABLE elClassId #-}
+elClassId :: forall t m a. DomBuilder t m => Text -> Text -> Text -> m a -> m a
+elClassId elementTag c eid child = 
+    elAttr elementTag (("class" =: c) <> ("id" =: eid)) child
+
+{-# INLINABLE divClassId #-}
+divClassId :: forall t m a. DomBuilder t m => Text -> Text -> m a -> m a
+divClassId = elClassId "div"
+    

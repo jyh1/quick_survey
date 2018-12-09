@@ -25,4 +25,4 @@ responseInfo' sId = do
     where 
         url = getResponseURL sId
         attrDic = 
-            ("href" =: url) <> ("download" =: "response.json") <> ("class" =: "ui primary button")
+            ("href" =: url) <> ("download" =: "response.json") <> ("class" =: "ui orange button")

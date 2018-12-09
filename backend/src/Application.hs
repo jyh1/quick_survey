@@ -104,4 +104,4 @@ resultServer pool sname =
 -- staticAPI = Proxy
 
 serverStatic :: Server StaticAPI
-serverStatic = serveDirectoryWebApp "Semantic-UI-CSS"
+serverStatic = serveDirectoryWebApp "static"

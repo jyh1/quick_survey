@@ -1,0 +1,64 @@
+.header-background-color {
+    height: 350px;
+    background-color: black;
+ }
+ 
+ .header-text {
+    padding-top: 50px;
+ }
+
+.header-bar {
+   background-color: #ff7e00;
+   height: 184px;
+}
+
+.body-background {
+   background-color:rgb(255, 240, 213);
+   min-height: 100%;
+   padding-bottom: 5%;
+}
+
+#main-body {
+   margin-top: -50px;
+   background-color:white;
+   font-family: Arial, Lato,'Helvetica Neue',Helvetica,sans-serif;
+   max-width: 730px !important;
+   line-height: 1.5;
+   font-size: 1.14285714rem;
+}
+
+#survey-entry{
+   border: none;
+   background-color:white;
+   box-shadow: none;
+}
+
+#file-icon{
+   font-size: 6.285714rem;
+}
+
+#file-icon-title{
+   font-size: 1.885714rem;
+}
+
+.find-survey{
+   font-size: 1.1em !important;
+}
+
+#search-icon{
+   font-size :1.7em;
+}
+
+.survey-tab{
+   padding-left: 1%;
+   padding-right: 1%;
+   padding-bottom: 10px;
+   padding-top: 10px;
+   box-shadow: 0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.24);
+   -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.24);
+   -moz-box-shadow:    0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.24);
+}
+
+#main-menu{
+   margin-bottom: 0px;
+}

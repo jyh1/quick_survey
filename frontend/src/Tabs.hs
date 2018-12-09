@@ -24,7 +24,7 @@ breadCrumbEle activePage page = do
 
 breadCrumb :: MonadWidget t m => Dynamic t PageStatus -> m (Event t Page)
 breadCrumb pageStat =
-    divClass "ui secondary pointing menu" $ do
+    divClassId "ui secondary pointing massive menu" "main-menu" $ do
         otherClick <- simpleList allpages (breadCrumbEle focus)
         return (switchDyn (leftmost <$> otherClick))
     where

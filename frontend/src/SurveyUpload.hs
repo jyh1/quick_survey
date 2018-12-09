@@ -28,7 +28,7 @@ surveyNameForm err = divClass "ui form" $ do
   savedName <- labeledField "Survey Name"
   labeledField "Password (Optional)"
   labeledField "Admin Name"
-  (e, _) <- elClass' "div" "ui primary button" (text "Upload Survey")
+  (e, _) <- elClass' "div" "ui orange button" (text "Upload Survey")
   let uploadEvent = tagMaybe (current savedName) (domEvent Click e)
   return uploadEvent
 

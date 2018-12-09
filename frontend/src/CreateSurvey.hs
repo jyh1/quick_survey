@@ -17,19 +17,17 @@ import FrontendCommon
 type SurveyError t = Event t String
 
 fileInputButton :: MonadWidget t m => m (Event t T.Text)
-fileInputButton =
-  elClass "label" "ui primary button" $ do
+fileInputButton = divClass "field" $
+  elClass "label" "ui orange button" $ do
     text "Create"
     fileButton <- fileInput (def & attributes .~ (constDyn ("style"=:"display:none")))
     getFileEvent fileButton
 createSurvey :: MonadWidget t m => m (FetchSurvey t m, SurveyError t)
 createSurvey = do
-  rec
-    divClass "ui icon header" $ do
-      elDynClass "i" fileIcon blank
-      text "Add a Survey"
-    uploadContent <- fileInputButton
-    fileIcon <- foldDyn const "file outline icon" ("file alternate outline icon" <$ uploadContent)
+  divClassId "ui icon header" "file-icon-title" $ do
+    elClassId "i" "file alternate outline icon" "file-icon" blank
+    text "Add a Survey"
+  uploadContent <- fileInputButton
   let fetchEvent = parseWithOriginal <$> uploadContent
   return (filterRight fetchEvent, filterLeft fetchEvent)
     where
@@ -43,8 +41,8 @@ createSurvey = do
 inputField :: MonadWidget t m => 
   T.Text -> T.Text -> Dynamic t Bool -> m (Dynamic t (Maybe T.Text), Event t (), Event t ())
 inputField label icon errorStatus = elDynClass "div" (fieldError <$> errorStatus) $ do
-  el "label" (text label)
-  divClass "ui left icon input" $ do
+  elClass "label" "find-survey" (text label)
+  divClass "ui left icon input find-survey" $ do
     (searchNameValue, onType, searchName) <- surveyNameInput label
     (e, _) <- elClass' "i" (icon <> " icon") blank
     let performSearch = keypress Enter searchName
@@ -61,7 +59,7 @@ searchButton active = divClass "field" $ do
     text "Search"
   return (domEvent Click e)
   where 
-    dynDisable b = "ui blue submit button" <> if b then "" else " disabled"
+    dynDisable b = "ui orange submit button" <> if b then "" else " disabled"
 
 -- User and Survey
 searchInfo :: MonadWidget t m => Dynamic t Bool -> m (Event t (), Event t (T.Text, T.Text))
@@ -106,9 +104,9 @@ searchSurvey = do
           errorStatus, errorMessage)
 
 findSurvey :: MonadWidget t m => m (FetchSurvey t m)
-findSurvey = divClass "ui form" $ divClass "field" $ do
+findSurvey = divClass "ui form" $ do
   rec
-    elClass "h3" "ui header" $ do
+    divClass "field" $ elClassId "h3" "ui header" "search-icon" $ do
       elDynClass "i" (icon <$> errorStatus) blank
       divClass "content" (dynText (join ((message errMsg)<$> errorStatus)))
     (fetched, errorStatus, errMsg) <- searchSurvey
@@ -129,7 +127,7 @@ parsingError msg clear = do
     elClass "ul" "list" $ el "li" (dynText errMsg)
 
 homePanel :: MonadWidget t m => m (FetchSurvey t m, SurveyError t)
-homePanel = divClass "ui placeholder segment" $ 
+homePanel = divClassId "ui placeholder segment" "survey-entry" $ 
   divClass "ui two column very relaxed stackable grid" $ do
     divClass "ui vertical divider" (text "Or")
     divClass "middle aligned row" $ do
