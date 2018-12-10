@@ -1,19 +1,16 @@
 {-# LANGUAGE RecursiveDo, TypeFamilies, FlexibleContexts, OverloadedStrings, ScopedTypeVariables #-}
 
-import Reflex.Dom.Core hiding (Home, Submit, Reset)
+module MainWidget where
+
+import Reflex.Dom hiding (Home, Submit, Reset)
 import qualified Data.Map as Map
 
-import Debug
 import Pages
 
+headElement, bodyElement :: MonadWidget t m => m ()
+bodyElement = divClass "body-background" allPages
 
 
-main :: IO ()
-main = run 3003 $ mainWidgetWithHead headElement $ divClass "body-background" $ 
-  allPages
-
-
-headElement :: MonadWidget t m => m ()
 headElement = do
   el "title" $ text "Survey"
   styleSheet "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
