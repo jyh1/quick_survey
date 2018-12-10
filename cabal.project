@@ -3,5 +3,4 @@ packages:
   common/
   backend/
   frontend/
-  diagrams-reflex/
-  reflex-dom-semui/
+  reflex-dom-contrib/
