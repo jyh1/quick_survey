@@ -12,6 +12,7 @@ import Tabs
 import FrontendCommon
 import SurveyUpload (submitForm)
 import Response (responseInfo)
+import Header (headerElement)
 
 
 changeTab :: SurveyGeneration t m -> PageStatus
@@ -48,6 +49,7 @@ responsePage active surveyIdE =
 allPages :: MonadWidget t m => m ()
 allPages = do
   divClass "header-bar" blank
+  headerElement
   divClassId "ui container" "main-body" $ do
     rec
       pageStatus <- foldDyn ($) initialPage (leftmost [navClick, surCreate])

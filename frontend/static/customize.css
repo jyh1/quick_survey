@@ -4,7 +4,30 @@
  }
  
  .header-text {
-    padding-top: 50px;
+   color: #ffffff; 
+   font-family: 'Arial', sans-serif;
+   font-size: 3em; 
+   font-weight: 300; 
+   line-height: 2em; 
+   margin: 0 0 0px; 
+   text-align: center; 
+ }
+
+ .sub-header-text{
+   font-family: 'Arial', sans-serif;
+   color: #dadada; 
+   font-size: 1.5em; 
+/*     font-weight: 50;  */
+   line-height: 0.5em;  
+   text-align: center;
+ }
+
+ .header-container {
+    width: 100%;
+    -webkit-user-select: none; /* Safari */        
+   -moz-user-select: none; /* Firefox */
+   -ms-user-select: none; /* IE10+/Edge */
+   user-select: none; /* Standard */
  }
 
 .header-bar {
@@ -66,4 +89,14 @@
 
 #main-menu{
    margin-bottom: 0px;
+}
+
+#github-icon {
+   padding: 0.5em;
+   font-size: 2em;
+   color: black;
+   width: 100%;
+   text-align: right;
+   position: absolute;
+   top: 0;
 }
