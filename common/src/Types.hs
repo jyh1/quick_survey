@@ -92,7 +92,7 @@ tshow = T.pack . show
 -- Generate URL for all responses of a survey
 getResponseURL :: T.Text -> T.Text
 getResponseURL sid = 
-    tshow (linkURI $ safeLink (Proxy :: Proxy ResultAPI) (Proxy :: Proxy AllRes) sid)
+    T.cons '/' (tshow (linkURI $ safeLink (Proxy :: Proxy ResultAPI) (Proxy :: Proxy AllRes) sid))
     
 leftPrefix :: B.ByteString
 leftPrefix = B.pack [19, 93, 10, 27]

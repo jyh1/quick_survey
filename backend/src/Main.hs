@@ -22,4 +22,4 @@ main = runServer "test.sqlite"
 
 runServer :: T.Text -> IO ()
 runServer sqliteFile =
-  run 8081 =<< (simpleCors <$> mkApp sqliteFile)
+  run 3003 =<< (simpleCors <$> mkApp sqliteFile)

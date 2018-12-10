@@ -12,9 +12,9 @@ bodyElement = divClass "body-background" allPages
 
 
 headElement = do
-  el "title" $ text "Survey"
+  el "title" $ text "Quick Survey"
   styleSheet "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
-  styleSheet "static/customize.css"
+  styleSheet "customize.css"
   where
     styleSheet link = elAttr "link" (Map.fromList [
           ("rel", "stylesheet")
