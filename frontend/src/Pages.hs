@@ -48,19 +48,24 @@ responsePage active surveyIdE =
 
 allPages :: MonadWidget t m => m ()
 allPages = do
-  divClass "header-bar" blank
-  headerElement
-  divClassId "ui container" "main-body" $ do
-    rec
-      pageStatus <- foldDyn ($) initialPage (leftmost [navClick, surCreate])
-      let curPage = activated <$> pageStatus
-      navClick <- fmap (clickActive <$>) (breadCrumb pageStatus)
+  divClass "header-bar" headerElement
+  rec
+    curPage <- divClass "menu-background" $ do
+      rec
+        pageStatus <- foldDyn ($) initialPage (leftmost [navClick, surCreate])
+        let curPage = activated <$> pageStatus
+        navClick <- fmap (clickActive <$>) (breadCrumb pageStatus)
+      return curPage
+
+    surCreate <- divClassId "ui container" "main-body" $ do
       (newStatus, createE) <- homePage curPage
-      let surCreate = const <$> newStatus
-    submitPage curPage (fmapMaybe getContent createE)
-    previewPage curPage createE
-    surveyPage curPage createE
-    responsePage curPage (fmapMaybe getName createE)
+      submitPage curPage (fmapMaybe getContent createE)
+      previewPage curPage createE
+      surveyPage curPage createE
+      responsePage curPage (fmapMaybe getName createE)
+      return (const <$> newStatus)
+
+  return ()
 
 initialPage :: PageStatus
 initialPage = PageStatus [Home] Home

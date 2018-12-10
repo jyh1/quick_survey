@@ -11,7 +11,7 @@ headerElement, titleElement :: MonadWidget t m => m ()
 headerElement = do
     titleElement
 
-titleElement = divClass "ui sticky fixed top header-container" $ do
+titleElement = divClass "header-container" $ do
     divClass "header-text" (text "Quick Survey")
     githubIcon
     divClass "sub-header-text" (text "Build online surveys from config files")

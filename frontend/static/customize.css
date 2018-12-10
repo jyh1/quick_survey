@@ -6,7 +6,7 @@
  .header-text {
    color: #ffffff; 
    font-family: 'Arial', sans-serif;
-   font-size: 3em; 
+   font-size: 2.6em; 
    font-weight: 300; 
    line-height: 2em; 
    margin: 0 0 0px; 
@@ -24,15 +24,20 @@
 
  .header-container {
     width: 100%;
+    position: absolute;
+    top: 0;
     -webkit-user-select: none; /* Safari */        
    -moz-user-select: none; /* Firefox */
    -ms-user-select: none; /* IE10+/Edge */
    user-select: none; /* Standard */
  }
 
-.header-bar {
+.header-bar, .menu-background {
    background-color: #ff7e00;
-   height: 184px;
+}
+
+.header-bar{
+   height: 134px;
 }
 
 .body-background {
@@ -40,14 +45,27 @@
    min-height: 100%;
    padding-bottom: 5%;
 }
-
-#main-body {
-   margin-top: -50px;
+#main-menu, #main-body {
    background-color:white;
    font-family: Arial, Lato,'Helvetica Neue',Helvetica,sans-serif;
    max-width: 730px !important;
+}
+#main-body {
    line-height: 1.5;
    font-size: 1.14285714rem;
+}
+
+#main-menu{
+   margin-bottom: 0px;
+   background-color: white;
+   margin: auto;
+}
+
+.menu-background{
+   position: sticky;
+   position: -webkit-sticky;
+   top: 0;
+   z-index: 1;
 }
 
 #survey-entry{
@@ -87,9 +105,7 @@
    -moz-box-shadow:    0 0 2px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.24);
 }
 
-#main-menu{
-   margin-bottom: 0px;
-}
+
 
 #github-icon {
    padding: 0.5em;
@@ -98,5 +114,6 @@
    width: 100%;
    text-align: right;
    position: absolute;
+   z-index: 1;
    top: 0;
 }
