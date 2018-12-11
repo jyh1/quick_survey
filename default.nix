@@ -10,7 +10,7 @@
   };
 
   shells = {
-    ghc = ["common" "backend" "frontend" "reflex-dom-contrib"];
-    ghcjs = ["common" "frontend" "reflex-dom-contrib"];
+    ghc = ["common" "backend" "frontend" ];
+    ghcjs = ["common" "frontend" ];
   };
 })

@@ -45,60 +45,12 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-
-executable jsaddlefrontend
-  -- .hs or .lhs file containing the Main module.
-  main-is:             JsaddleMain.hs
-  ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
-  
-  -- Modules included in this executable, other than Main.
-  -- other-modules:       
-  
-  -- LANGUAGE extensions used by modules in this package.
-  other-extensions:    OverloadedStrings
-  
-  -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.11
-                     , common
-                     , reflex-dom
-                     , reflex
-                     , vector
-                    --  , diagrams-lib >= 1.4 && < 1.5
-                     , text
-                    --  , diagrams-reflex
-                     , containers
-                     , jsaddle
-                     , jsaddle-dom
-                     , mtl
-                     , dependent-sum
-                     , aeson
-                    --  , reflex-dom-semui
-                     , reflex-dom-contrib
-                     , servant-reflex
-                     , servant
-                    --  , servant-server
-                     , reflex-dom-core
-                     , jsaddle-warp
-                     , bytestring
-                     , attoparsec
-                    --  , lens
-
-                    --  debug
-                     , warp
-                     , backend
-                     , websockets
-                     , process
-  
-  -- Directories containing source files.
-  hs-source-dirs:      src
-  
-  -- Base language which the package is written in.
-  default-language:    Haskell2010
-  
-
 executable frontend
   -- .hs or .lhs file containing the Main module.
-  main-is:             Main.hs
+  if impl(ghc)
+    main-is:             JsaddleMain.hs
+  else
+    main-is:             Main.hs
   ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
   
   -- Modules included in this executable, other than Main.
@@ -109,29 +61,40 @@ executable frontend
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.7 && <4.11
-                     , common
-                     , reflex-dom
-                     , reflex
-                     , vector
+                    , common
+                    , reflex-dom
+                    , reflex
+                    , vector
                     --  , diagrams-lib >= 1.4 && < 1.5
-                     , text
+                    , text
                     --  , diagrams-reflex
-                     , containers
-                     , jsaddle
-                     , jsaddle-dom
-                     , mtl
-                     , dependent-sum
-                     , aeson
+                    , containers
+                    , jsaddle
+                    , jsaddle-dom
+                    , mtl
+                    , dependent-sum
+                    , aeson
                     --  , reflex-dom-semui
-                     , reflex-dom-contrib
-                     , servant-reflex
-                     , servant
+                    , reflex-dom-contrib
+                    , servant-reflex
+                    , servant
                     --  , servant-server
-                     , reflex-dom-core
-                     , jsaddle-warp
-                     , bytestring
-                     , attoparsec
+                    , reflex-dom-core
+                    , jsaddle-warp
+                    , bytestring
+                    , attoparsec
                     --  , lens
+  if !impl(ghcjs)
+    build-depends:
+                    --  debug
+                      warp
+                    , backend
+                    , websockets
+                    , process
+  else
+    build-depends:
+                    ghcjs-base
+                  , ghcjs-dom-jsffi
   
   -- Directories containing source files.
   hs-source-dirs:      src

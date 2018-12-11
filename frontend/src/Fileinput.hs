@@ -1,13 +1,21 @@
+{-# LANGUAGE CPP                      #-}
 module Fileinput where
 
-import Reflex.Dom
+import Reflex.Dom.Core
 import Data.Text (Text)
-import GHCJS.Marshal
-import JSDOM.Types hiding (Text, Event)
-import JSDOM.Generated.FileReader
-import JSDOM.Types (File)
-import JSDOM.EventM
 import Data.Maybe (listToMaybe)
+import GHCJS.Marshal
+#ifdef ghcjs_HOST_OS
+import GHCJS.DOM.FileReader
+import           GHCJS.DOM.Types       (File (..))
+import           Language.Javascript.JSaddle
+import           GHCJS.DOM.EventM      (on)
+#else
+import JSDOM.Types (File (..), liftJSM)
+import JSDOM.Generated.FileReader
+import JSDOM.EventM
+#endif
+
 
 dataURLFileReader :: MonadWidget t m => Event t File -> m (Event t Text)
 dataURLFileReader request =
