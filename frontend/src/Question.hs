@@ -182,8 +182,7 @@ semRadioGroup dynName dynEntryList colN cfg = do
 
   where
 
-    filedStyle = 
-      "display: inline-block; padding-left: .5em; padding-right: .5em;" <> getColWidth colN
+    filedStyle = getColWidth colN
     mkBtnAttrs nm chked =
         "type" =: "checkbox"
      <> "name" =: nm
@@ -193,7 +192,7 @@ semRadioGroup dynName dynEntryList colN cfg = do
     mkCheckClass = "class" =: "ui checkbox radio"
     handleOne _ dynV dynChecked = do
 
-      elAttr "div" ("class" =: "field" <> "style" =: filedStyle) $ elAttr "div" mkCheckClass $ do
+      elAttr "div" ("class" =: "field radio-group-options" <> "style" =: filedStyle) $ elAttr "div" mkCheckClass $ do
         let txt = zipDynWith (\v m -> fromMaybe "" $ Prelude.lookup v m)
                              dynV dynEntryList
 
