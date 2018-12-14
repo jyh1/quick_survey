@@ -1,0 +1,135 @@
+[
+    [
+        {"type":"title", "title":"Text Simplification"},
+        [
+            {"type":"title", "title":"Original Sentence"},
+            "Genetic engineering has expanded the genes available to breeders to utilize in creating desired germlines for new crops .",
+            {"type":"title", "title":"Simplified Sentences"},
+            {
+                "type":"radiogroup",
+                "title":"New plants were created with genetic engineering .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            },
+            {
+                "type":"radiogroup",
+                "title":"genetic engineering has expanded the genes available to breeders to use in good germlines for creating new products .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            },
+            {
+                "type":"radiogroup",
+                "title":"Genetic engineering has expanded the genes available to breeders to make creating germlines for new crops .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            }
+        ],
+        [
+            {"type":"title", "title":"Original Sentence"},
+            "Genetic engineering has expanded the genes available to breeders to utilize in creating desired germlines for new crops .",
+            {"type":"title", "title":"Simplified Sentences"},
+            {
+                "type":"radiogroup",
+                "title":"New plants were created with genetic engineering .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            },
+            {
+                "type":"radiogroup",
+                "title":"genetic engineering has expanded the genes available to breeders to use in good germlines for creating new products .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            },
+            {
+                "type":"radiogroup",
+                "title":"Genetic engineering has expanded the genes available to breeders to make creating germlines for new crops .", 
+                "choices":["Very Good", "Good", "Fair", "Bad", "Very Bad"],
+                "colCount": 5
+            }
+        ]
+    ],
+
+    [
+            {"type":"title", "title": "Multiple Rows"},
+            {
+                "type":"radiogroup",
+                "title":"What car are you driving?", 
+                "choices":["None",
+                            "Ford",
+                            "Vauxhall",
+                            "Volkswagen",
+                            "Nissan",
+                            "Audi",
+                            "Mercedes-Benz",
+                            "BMW",
+                            "Peugeot",
+                            "Toyota",
+                            "Citroen"],
+                "colCount": 3
+            },
+            {
+                "type":"radiogroup",
+                "title":"What car are you driving?", 
+                "choices":["None",
+                            "Ford",
+                            "Vauxhall",
+                            "Volkswagen",
+                            "Nissan",
+                            "Audi",
+                            "Mercedes-Benz",
+                            "BMW",
+                            "Peugeot",
+                            "Toyota",
+                            "Citroen"]
+            }
+    ],
+
+    [
+        {"type":"title", "title": "Nested List"},
+        [
+            "Level 2",
+            [
+                "Level 3",
+                [
+                    "Level4",
+                    "Nested",
+                    "Nested"
+                ]
+            ]
+        ]
+    ],
+
+    [
+        {"type":"title", "title": "Final project submission form -- IWS I, F2018 (#comp5130f2018)"},
+        "End-of-semester project submission.",
+        "Make sure you enter all information so you do not lose points!",
+        "NOTE: if you think that your project does not require a manual, put in your manual document a short statement to that effect. Your manual should include (as may be relevant) how to build, install, and run your project, any additional tools, technologies, etc. that are necessary for it to correctly and completely build and run.",
+                 
+        [
+            {"type":"title", "title": "Your Name"},   
+            {"type":"textinput", "title": "Last Name"},
+            {"type":"textinput", "title": "First Name"}
+        ],
+        [
+        {"type":"title", "title": "Your Email Address"},
+            {"type":"textinput", "title": "@student.uml.edu"},
+            {"type":"textinput", "title": "@cs.uml.edu"}
+
+        ],
+        [
+        {"type":"title", "title": "Link to your project's directory"},
+
+            {"type":"textinput", "title": "On your site on weblab.cs.uml.edu"},
+            {"type":"textinput", "title": "On your GitHub"}
+        ],
+        [
+        {"type":"title", "title":"Academic honesty certification"},
+
+            {"type":"radiogroup", "title": "Select one", 
+            "choices":["The work I am submitting is MY OWN in its ENTIRETY: I have not used ANY external sources", "I have used other sources, as-is, as listed and detailed in my submitted README.txt file (must be named EXACTLY README.txt)",
+                "I have used other sources, modified, as listed and detailed in my submitted README.txt file"]}
+        ]
+
+    ]
+
+]
