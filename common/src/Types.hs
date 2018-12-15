@@ -41,6 +41,7 @@ getEle = snd
 data ElementResponse = 
       Clicked ElementID
     | Clear
+    | InputText T.Text
     deriving (Show, Eq, Generic)
 
 instance ToJSON ElementResponse where 

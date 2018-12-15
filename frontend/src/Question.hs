@@ -40,7 +40,7 @@ textToSurveyContent = encodeUtf8
 --     [(eid, Title ("Question_" <> tshow eid)), (succ eid, RadioGroup (Just (content que)) (options que)) ]
 --   )
 
-parseRadioGroup, parseTitle, parseFormObject :: Object -> Parser Form
+parseRadioGroup, parseTitle, parseTextInput, parseFormObject :: Object -> Parser Form
 parseRadioGroup obj = do
   title <- obj .: "title"
   choices <- obj .: "choices"
@@ -49,6 +49,11 @@ parseRadioGroup obj = do
 
 parseTitle obj = Title <$> (obj .: "title")
 
+parseTextInput obj = do
+  title <- obj .: "title"
+  pl <- obj .:? "placeholder"
+  return (PlainText title pl)
+
 parseFormObject obj = do
   formType <- obj .:? "type"
   case formType of
@@ -56,6 +61,7 @@ parseFormObject obj = do
     Just "radiogroup" -> parseRadioGroup obj
     Just "title" -> parseTitle obj
     Just "text" -> (obj .: "title") >>= parsePlain
+    Just "textinput" -> parseTextInput obj
     Just other -> fail ("Unkonw type: " <> other)
 
 parsePlain :: T.Text -> Parser Form
@@ -123,18 +129,53 @@ renderElementWith postRes rId saved (RadioGroup radioT radioO colCount) = do
       let eventResponse = getResponse <$> eventSel
       postToServer <- postRes rId eventResponse
       -- TODO Initial value of displayAnswer
-      busy <- foldDyn (+) 0 
-                (mergeWith (+) [ 1 <$ eventResponse, -1 <$ postToServer])
+      busy <- mutexDyn (() <$ eventResponse) (() <$ postToServer)
       savedDyn <- holdDyn savedId (fromResponse <$> postToServer)
   return ((\x -> (rId, x)) <$> eventResponse)
   where
     radioID = ("radio_" <> ) . tshow $ rId
     getResponse Nothing = Clear
     getResponse (Just k) = Clicked k
-    fromResponse Clear = Nothing
     fromResponse (Clicked k) = Just k
+    fromResponse _ = Nothing
     savedId = saved >>= fromResponse
-    
+
+renderElementWith postRes rId saved (PlainText ptitle holder) = do
+  rec divClass "field" $ el "label" $ do
+        text ptitle
+        displayAnswer ["Saved"] sel busy
+      (sel, inputE) <- textInputField holder (saved >>= fromResponse)
+      clearInputE <- delay (waitingTime + 0.1) inputE
+      saveToServer <- debounce waitingTime inputE
+      postToServer <- postRes rId (InputText <$> saveToServer)
+      uploadingbusy <- mutexDyn (() <$ saveToServer) (() <$ postToServer)
+      inputbusy <- mutexDyn (() <$ inputE) (() <$ clearInputE)
+      let busy = zipDynWith mergeMutex inputbusy uploadingbusy
+  return never
+  where
+    waitingTime = 1
+    mergeMutex a b
+      | a == 0 && b == 0 = 0
+      | otherwise = 1
+    fromResponse (InputText k) = Just k
+    fromResponse _ = Nothing
+
+{-# INLINABLE mutexDyn #-}
+mutexDyn :: (MonadWidget t m) => Event t () -> Event t () -> m (Dynamic t Int)
+mutexDyn p m = 
+  foldDyn (+) 0 
+                (mergeWith (+) [ 1 <$ p, -1 <$ m])
+
+
+{-# INLINABLE textInputField #-}
+textInputField :: MonadWidget t m => Maybe T.Text -> Maybe T.Text -> m (Dynamic t (Maybe Int), Event t T.Text)
+textInputField placeholder initial = do
+    textIn <- textInput (def{_textInputConfig_attributes = inputAttribute, _textInputConfig_initialValue = fromMaybe "" initial})
+    return (trimInput <$> (value textIn), _textInput_input textIn)
+    where
+        inputAttribute = constDyn (("spellcheck" =: "false") <> ("placeholder" =: fromMaybe "" placeholder))
+        trimInput b = 
+          if T.null b then Nothing else Just 0
 
 displayAnswer :: (MonadWidget t m) => [T.Text] -> Dynamic t (Maybe Int) -> Dynamic t Int -> m ()
 displayAnswer opts sel busy =
