@@ -9,7 +9,7 @@ import Data.Maybe (isJust)
 import Control.Monad (join)
 import qualified Data.IntMap.Strict as IM
 
-import Question
+import Question.Question
 import Fileinput
 import Request
 import FrontendCommon

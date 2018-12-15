@@ -4,7 +4,7 @@ module Pages where
 import Reflex.Dom.Core hiding (Home, Submit, Reset)
 import qualified Data.Text as T
 
-import Question
+import Question.Question
 import Fileinput
 import Debug (run)
 import CreateSurvey
