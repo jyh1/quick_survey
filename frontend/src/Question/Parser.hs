@@ -19,32 +19,36 @@ jsonToQuestion = parseSurvey . textToSurveyContent
 textToSurveyContent :: T.Text -> SurveyContent
 textToSurveyContent = encodeUtf8
 
-parseRadioGroup, parseTitle, parseTextInput, parseFormObject :: Object -> Parser Form
-parseRadioGroup obj = do
-  title <- obj .: "title"
-  choices <- obj .: "choices"
-  colCount <- obj .:? "colCount"
-  return (RadioGroup title choices colCount)
+parseOptionInput :: (OptionConfig -> Form) -> Object -> Parser Form
+parseOptionInput optInp obj = do
+    title <- obj .: "title"
+    choices <- obj .: "choices"
+    colCount <- obj .:? "colCount"
+    return (optInp (defaultConf {title=title, radioOpts=choices, colCount=colCount}))
+  
 
-parseTitle obj = Title <$> (obj .: "title")
+parseTitle, parseTextInput, parseFormObject :: Object -> Parser Form
+parseTitle obj = do
+    title <- (obj .: "title")
+    return (Title (defaultConf {title=title}))
 
 parseTextInput obj = do
   title <- obj .: "title"
   pl <- obj .:? "placeholder"
-  return (PlainText title pl)
+  return (PlainText (defaultConf {title=title, placeholder= pl}))
 
 parseFormObject obj = do
   formType <- obj .:? "type"
   case formType of
-    Nothing -> parseRadioGroup obj
-    Just "radiogroup" -> parseRadioGroup obj
+    Nothing -> fail ("Missing type key in object")
+    Just "radiogroup" -> parseOptionInput (OptionInput Radiogroup) obj
     Just "title" -> parseTitle obj
     Just "text" -> (obj .: "title") >>= parsePlain
     Just "textinput" -> parseTextInput obj
     Just other -> fail ("Unkonw type: " <> other)
 
 parsePlain :: T.Text -> Parser Form
-parsePlain t = return (Plain t)
+parsePlain t = return (Plain (defaultConf {title=t}))
 
 parseForm :: Value -> Parser Form
 parseForm (Object obj) = parseFormObject obj

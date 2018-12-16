@@ -35,14 +35,26 @@ import Common
 
 
 data Form = 
-    RadioGroup {title :: T.Text, radioOpts :: [T.Text], colCount :: Maybe Int}
-  | Title {title :: T.Text}
-  | Plain T.Text
---   plain text input
-  | PlainText {title :: T.Text, placeholder :: Maybe T.Text}
+    OptionInput {optType :: OptionType, config :: OptionConfig}
+  | Title {config :: OptionConfig}
+  | Plain {config :: OptionConfig}
+  | PlainText {config :: OptionConfig}
   | List [Form]
   deriving (Show, Eq, Read)
 
+data OptionType = Radiogroup | Checkboxgroup
+    deriving (Show, Eq, Read)
+
+data OptionConfig = OptionConfig
+    { 
+        title :: T.Text, 
+        radioOpts :: [T.Text], 
+        colCount :: Maybe Int,
+        placeholder :: Maybe T.Text
+    }
+    deriving (Show, Eq, Read)
+
+defaultConf = OptionConfig "" [] Nothing Nothing
 -- type ElementWithID = WithID ElementID QuestionElement
 -- type ParsedQuestion = ElementWithID
 emptyForm = List []

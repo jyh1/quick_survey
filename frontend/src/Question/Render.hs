@@ -54,17 +54,17 @@ renderElement atomic = do
 
 
 renderElementWith :: (MonadWidget t m) => PostRes t m -> Int -> Maybe ElementResponse -> Form -> m (Event t SurveyUpdate)
-renderElementWith _ _ _ (Title title) = do
-  divClass "ui dividing header" (text title)
+renderElementWith _ _ _ (Title optConf) = do
+  divClass "ui dividing header" (text (title optConf))
   return never
-renderElementWith _ _ _ (Plain t) = do
-  el "p" (text t)
+renderElementWith _ _ _ (Plain optConf) = do
+  el "p" (text (title optConf))
   return never
-renderElementWith postRes rId saved (RadioGroup radioT radioO colCount) = do
+renderElementWith postRes rId saved (OptionInput Radiogroup optConf) = do
   rec divClass "field" $ el "label" $ do
         text radioT
         displayAnswer radioO savedDyn busy
-      answer <- optionRadioGroup (constDyn radioID) (constDyn radioO) (fromMaybe 0 colCount) savedId
+      answer <- optionRadioGroup (constDyn radioID) (constDyn radioO) (fromMaybe 0 colNum) savedId
       eventSel <- tailE (_hwidget_change answer)
       let eventResponse = getResponse <$> eventSel
       postToServer <- postRes rId eventResponse
@@ -72,6 +72,9 @@ renderElementWith postRes rId saved (RadioGroup radioT radioO colCount) = do
       savedDyn <- holdDyn savedId (fromResponse <$> postToServer)
   return ((\x -> (rId, x)) <$> eventResponse)
   where
+    radioT = title optConf
+    radioO = radioOpts optConf
+    colNum = colCount optConf
     radioID = ("radio_" <> ) . tshow $ rId
     getResponse Nothing = Clear
     getResponse (Just k) = Clicked k
@@ -79,7 +82,7 @@ renderElementWith postRes rId saved (RadioGroup radioT radioO colCount) = do
     fromResponse _ = Nothing
     savedId = saved >>= fromResponse
 
-renderElementWith postRes rId saved (PlainText ptitle holder) = do
+renderElementWith postRes rId saved (PlainText optConf) = do
   rec divClass "field" $ el "label" $ do
         text ptitle
         displayAnswer ["Saved"] sel busy
@@ -92,6 +95,8 @@ renderElementWith postRes rId saved (PlainText ptitle holder) = do
       let busy = zipDynWith mergeMutex inputbusy uploadingbusy
   return never
   where
+    ptitle = title optConf
+    holder = placeholder optConf
     waitingTime = 1
     mergeMutex a b
       | a == 0 && b == 0 = 0
