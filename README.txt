@@ -1,7 +1,7 @@
 
 External sources:
 This repository contains [reflex-platform](https://github.com/reflex-frp/reflex-platform) as a git submodule.
-The code of module reflex-dom-contrib is adopted from the [original](https://github.com/reflex-frp/reflex-dom-contrib) repository.
+The code under the folder reflex-dom-contrib in this repository is adopted from the [original](https://github.com/reflex-frp/reflex-dom-contrib) repository. It is modified by removing files unrelated to displaying radiogroup options.
 
 Build:
 
