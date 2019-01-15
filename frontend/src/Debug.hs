@@ -30,7 +30,7 @@ run _port = id
 #else
 run :: Int -> JSM () -> IO ()
 run port f = do
-    callCommand "rm test.sqlite"
+    -- callCommand "rm test.sqlite"
     serverApp <- mkApp "test.sqlite"
     app <- jsaddleWithAppOr defaultConnectionOptions (f >> syncPoint) serverApp
     runSettings (setPort port (setTimeout 3600 defaultSettings)) app

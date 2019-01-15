@@ -3,6 +3,7 @@ module Pages where
 
 import Reflex.Dom.Core hiding (Home, Submit, Reset)
 import qualified Data.Text as T
+import Data.Monoid ((<>))
 
 import Question.Question
 import Fileinput
@@ -13,6 +14,7 @@ import FrontendCommon
 import SurveyUpload (submitForm)
 import Response (responseInfo)
 import Header (headerElement)
+import Example (exampleSurvey)
 
 
 changeTab :: SurveyGeneration t m -> PageStatus
@@ -37,6 +39,22 @@ previewPage active createE =
 surveyPage active createE =
   displayPage active Survey (renderQuestionLis (getRenderForm <$> createE))
   
+examplePage :: MonadWidget t m => Dynamic t Page -> m ()
+examplePage active =
+  displayPage active Example $ do
+    divClass "ui info message" $ do
+      divClass "header" (text "An Example Survey")
+      elClass "ul" "list" $ do
+        el "li" $ do
+          text "Upload this "
+          elAttr "a" (("href" =: getSurveyContent exampleName) <> ("download" =: "sample.json")) (text "config file")
+          text " to create the same survey as below."
+        el "li" (text ("Or use survey name \"" <> exampleName <> "\" to search"))
+        el "li" (text "All responses will be saved instantly.")
+        el "li" (text "Progress will be resumed when entering the survey with the same user name.")
+    
+    ex <- exampleSurvey
+    renderQuestionLis (getRenderForm <$> ex)
 
 submitPage :: MonadWidget t m => Dynamic t Page -> Event t SurveyContent -> m ()
 submitPage active surveyE = 
@@ -59,6 +77,7 @@ allPages = do
 
     surCreate <- divClassId "ui container" "main-body" $ do
       (newStatus, createE) <- homePage curPage
+      examplePage curPage
       submitPage curPage (fmapMaybe getContent createE)
       previewPage curPage createE
       surveyPage curPage createE
@@ -68,7 +87,7 @@ allPages = do
   return ()
 
 initialPage :: PageStatus
-initialPage = PageStatus [Home] Home
+initialPage = PageStatus [Home, Example] Home
 
 clickActive :: Page -> PageStatus -> PageStatus
 clickActive act (PageStatus ps _) = PageStatus ps act

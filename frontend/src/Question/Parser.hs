@@ -42,6 +42,7 @@ parseFormObject obj = do
   case formType of
     Nothing -> fail ("Missing type key in object")
     Just "radiogroup" -> parseOptionInput (OptionInput Radiogroup) obj
+    Just "checkboxgroup" -> parseOptionInput (OptionInput Checkboxgroup) obj
     Just "title" -> parseTitle obj
     Just "text" -> (obj .: "title") >>= parsePlain
     Just "textinput" -> parseTextInput obj

@@ -86,7 +86,7 @@ type ResultAPI =
     )
 
 type AllRes = "result" :> Capture "surveyid" T.Text :> Get '[JSON] [SurveyResult]
-
+type SurveyContentType = "survey" :> Capture "surveyid" T.Text :> ( Get '[OctetStream] (Either T.Text SurveyContent))
 tshow :: (Show a) => a -> T.Text
 tshow = T.pack . show
 
@@ -94,7 +94,11 @@ tshow = T.pack . show
 getResponseURL :: T.Text -> T.Text
 getResponseURL sid = 
     T.cons '/' (tshow (linkURI $ safeLink (Proxy :: Proxy ResultAPI) (Proxy :: Proxy AllRes) sid))
-    
+
+getSurveyContent :: T.Text -> T.Text
+getSurveyContent sid =
+    T.cons '/' (tshow (linkURI $ safeLink (Proxy :: Proxy SurveyAPI) (Proxy :: Proxy SurveyContentType) sid))
+
 leftPrefix :: B.ByteString
 leftPrefix = B.pack [19, 93, 10, 27]
 

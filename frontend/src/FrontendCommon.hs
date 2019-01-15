@@ -101,9 +101,12 @@ type PostResponse t m = Dynamic t (Either Text Text) -> PostRes t m
 type PostSurvey t m = Dynamic t (Either Text SurveyContent) -> Event t () -> m (Event t (), Event t ())
 
 -- Page types
-data Page = Home | Preview | Submit | Survey | Responses
+data Page = Home | Preview | Submit | Survey | Responses | Example
     deriving(Show, Eq)
 data PageStatus = PageStatus {pages :: [Page], activated :: Page}
+
+exampleName :: T.Text
+exampleName = "sample"
 
 divDynClass :: MonadWidget t m => Dynamic t Text -> m a -> m a
 divDynClass = elDynClass "div" 

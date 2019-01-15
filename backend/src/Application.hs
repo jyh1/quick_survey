@@ -43,9 +43,9 @@ mkApp sqliteFile = do
     createSqlitePool sqliteFile 5
 
   runSqlPool (runMigration migrateAll) pool
-  flip runSqlPersistMPool pool $ do
+  -- flip runSqlPersistMPool pool $ do
     -- insert (Survey "test" sampleSurvey)
-    insert (Response 1 "test" (Clicked 2) "jyh1")
+    -- insert (Response 1 "test" (Clicked 2) "jyh1")
   return $ app pool
 
 

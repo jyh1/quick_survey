@@ -123,3 +123,7 @@
    padding-left: .5em !important; 
    padding-right: .5em !important;
 }
+
+a{
+   text-decoration: underline;
+}
