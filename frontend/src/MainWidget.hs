@@ -12,11 +12,11 @@ headElement, bodyElement :: MonadWidget t m => m ()
 bodyElement = divClass "body-background" allPages
 
 customizeCSS :: T.Text
-#ifdef ghcjs_HOST_OS
+-- #ifdef ghcjs_HOST_OS
 customizeCSS = "customize.css"
-#else
-customizeCSS = "static/customize.css"
-#endif
+-- #else
+-- customizeCSS = "static/customize.css"
+-- #endif
 
 headElement = do
   el "title" $ text "Quick Survey"
@@ -27,5 +27,5 @@ headElement = do
           ("rel", "stylesheet")
         , ("type", "text/css")
         , ("href", link)
-        , ("id", "bootstrap-css")
+        -- , ("id", "bootstrap-css")
       ]) $ return ()

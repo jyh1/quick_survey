@@ -20,10 +20,11 @@ import System.Environment
 import Application
 
 main :: IO ()
-main = runServer "test.sqlite"
-
-runServer :: T.Text -> IO ()
-runServer sqliteFile = do
+main = do
   [port] <- getArgs
   let portN = read port
+  runServer portN "test.sqlite"
+
+runServer :: Int -> T.Text -> IO ()
+runServer portN sqliteFile =
   run portN =<< (simpleCors <$> mkApp sqliteFile)

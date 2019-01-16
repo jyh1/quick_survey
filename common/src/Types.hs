@@ -118,7 +118,7 @@ instance MimeRender OctetStream (Either T.Text SurveyContent) where
        mimeRender _ (Left err) = BL.fromStrict (B.append leftPrefix (encodeUtf8 err))
    
 
-type StaticAPI = "static" :> Raw
+type StaticAPI = Raw
 
 type API = SurveyAPI
 

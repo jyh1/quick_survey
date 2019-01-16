@@ -22,6 +22,7 @@ import Data.Maybe(fromMaybe)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Logger (runStderrLoggingT, logInfoN)
 import Data.ByteString.Lazy (toStrict, fromStrict)
+import Data.ByteString as B
 
 import Common
 import Types
@@ -29,13 +30,13 @@ import Types
 import Model
 
 
-userAPI :: Proxy (SurveyAPI :<|> StaticAPI :<|> ResultAPI)
+userAPI :: Proxy (SurveyAPI :<|> ResultAPI :<|> StaticAPI)
 userAPI = Proxy
 
 
 
 app :: ConnectionPool -> Application
-app pool = serve userAPI $ (server pool :<|> serverStatic :<|> resultServer pool)
+app pool = serve userAPI $ (server pool :<|> resultServer pool :<|> serverStatic)
 
 mkApp :: T.Text -> IO Application
 mkApp sqliteFile = do
@@ -103,5 +104,6 @@ resultServer pool sname =
 -- staticAPI :: Proxy StaticAPI
 -- staticAPI = Proxy
 
+
 serverStatic :: Server StaticAPI
-serverStatic = serveDirectoryWebApp "static"
+serverStatic = serveDirectoryFileServer "static"
